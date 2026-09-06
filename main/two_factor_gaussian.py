@@ -39,6 +39,7 @@ from typing import Literal, Sequence
 
 import numpy as np
 from scipy.interpolate import CubicSpline
+from scipy.stats import norm
 
 __all__ = [
     "TwoFactorGaussianParams",
@@ -62,6 +63,11 @@ __all__ = [
     "step_covariance",
     "SimulationResult",
     "simulate",
+    "zcb_option_volatility",
+    "cbb_option_volatility",
+    "zcb_option_price",
+    "cbb_option_price",
+    "monte_carlo_option_price",
 ]
 
 _TINY = 1e-12
@@ -136,8 +142,25 @@ class Curve:
     interpolation : "cubic" (spline C2 sur les taux, forwards continus)
         ou "linear" (interpolation lineaire sur les taux).
 
-    Hors de la plage des tenors, le taux zero est extrapole plat, ce qui
-    rend le forward instantane egal au taux zero au-dela du dernier pilier.
+    Extrapolation
+    -------------
+    Hors de la plage des piliers, la courbe est prolongee de facon a garder
+    le forward instantane f(t) = R(t) + t R'(t) CONTINU, et a repricer
+    exactement les piliers.
+
+    - Au-dela de t_max : forward plat, f(t) = f(t_max). D'ou
+          R(t) = [R(t_max) t_max + f(t_max) (t - t_max)] / t.
+
+    - En deca de t_min : forward AFFINE, pas plat. Un forward constant y
+      est impossible sans casser quelque chose : l'integrale du forward sur
+      [0, t_min] vaut R(t_min) t_min, impose par le marche, donc un forward
+      constant vaudrait necessairement R(t_min) et sauterait a f(t_min).
+      On prend donc la seule affine qui reprice et raccorde :
+          f(t) = f_0 + (f(t_min) - f_0) t / t_min,  f_0 = 2 R(t_min) - f(t_min),
+          R(t) = f_0 + (f(t_min) - f_0) t / (2 t_min).
+
+    Consequence : f est continu sur ]0, +inf[, et alpha_bar (eq. 15) l'est
+    aussi. Les facteurs d'actualisation sont inchanges sur [t_min, t_max].
     """
 
     tenors: np.ndarray
@@ -157,8 +180,24 @@ class Curve:
             if self.tenors.size < 4:
                 raise ValueError("l'interpolation cubique demande >= 4 piliers.")
             self._spline = CubicSpline(self.tenors, self.zero_rates, extrapolate=False)
-        elif self.interpolation != "linear":
+        elif self.interpolation == "linear":
+            if self.tenors.size < 2:
+                raise ValueError("l'interpolation lineaire demande >= 2 piliers.")
+            self._slopes = np.diff(self.zero_rates) / np.diff(self.tenors)
+        else:
             raise ValueError("interpolation doit valoir 'cubic' ou 'linear'.")
+
+        # Raccords d'extrapolation. Calcules via _interp_core uniquement :
+        # passer par zero_rate / instantaneous_forward creerait une recursion,
+        # ces methodes dependant justement des quantites calculees ici.
+        self._tmin = float(self.tenors[0])
+        self._tmax = float(self.tenors[-1])
+        r_min, d_min = self._interp_core(np.array(self._tmin))
+        r_max, d_max = self._interp_core(np.array(self._tmax))
+        self._z_min, self._z_max = float(r_min), float(r_max)
+        self._f_min = self._z_min + self._tmin * float(d_min)   # f(t_min+)
+        self._f_max = self._z_max + self._tmax * float(d_max)   # f(t_max-)
+        self._f_0 = 2.0 * self._z_min - self._f_min             # f(0+), cf. docstring
 
     @classmethod
     def from_discount_factors(
@@ -182,30 +221,57 @@ class Curve:
         t = np.linspace(max_tenor / n_points, max_tenor, n_points)
         return cls(t, np.full_like(t, float(rate)), "linear")
 
+    # -- interpolation interne --------------------------------------------
+
+    def _interp_core(self, t: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+        """(R, dR/dt) par interpolation pure. ``t`` doit etre dans
+        [t_min, t_max] ; aucune extrapolation ici."""
+        if self.interpolation == "cubic":
+            return self._spline(t), self._spline(t, 1)
+        r = np.interp(t, self.tenors, self.zero_rates)
+        idx = np.clip(
+            np.searchsorted(self.tenors, t, side="right") - 1, 0, self._slopes.size - 1
+        )
+        return r, self._slopes[idx]
+
+    def _r_and_dr(self, t):
+        """(R(0, t), dR/dt) avec extrapolation a forward continu.
+
+        Point d'entree unique de zero_rate / zero_rate_derivative /
+        instantaneous_forward : les trois regimes (court, interpole, long)
+        y sont traites une seule fois, ce qui garantit que la derivee
+        renvoyee est bien celle du taux renvoye.
+        """
+        t = np.asarray(t, dtype=float)
+        tmin, tmax = self._tmin, self._tmax
+        r_in, d_in = self._interp_core(np.clip(t, tmin, tmax))
+
+        # Court terme : forward affine (cf. docstring de la classe).
+        slope_lo = (self._f_min - self._f_0) / (2.0 * tmin)
+        r_lo = self._f_0 + slope_lo * t
+        d_lo = np.full_like(t, slope_lo)
+
+        # Long terme : forward plat.
+        t_safe = np.where(t > 0.0, t, 1.0)
+        r_hi = (self._z_max * tmax + self._f_max * (t - tmax)) / t_safe
+        d_hi = (self._f_max - r_hi) / t_safe
+
+        r = np.where(t < tmin, r_lo, np.where(t > tmax, r_hi, r_in))
+        d = np.where(t < tmin, d_lo, np.where(t > tmax, d_hi, d_in))
+        return r, d
+
     # -- accesseurs -------------------------------------------------------
 
     def zero_rate(self, t):
         """Taux zero-coupon continu R(0, t)."""
         t = np.asarray(t, dtype=float)
-        tc = np.clip(t, self.tenors[0], self.tenors[-1])
-        if self.interpolation == "cubic":
-            r = self._spline(tc)
-        else:
-            r = np.interp(tc, self.tenors, self.zero_rates)
+        r, _ = self._r_and_dr(t)
         return r if t.ndim else float(r)
 
     def zero_rate_derivative(self, t):
-        """Derivee dR(0, t)/dt, nulle en extrapolation plate."""
+        """Derivee dR(0, t)/dt."""
         t = np.asarray(t, dtype=float)
-        inside = (t >= self.tenors[0]) & (t <= self.tenors[-1])
-        tc = np.clip(t, self.tenors[0], self.tenors[-1])
-        if self.interpolation == "cubic":
-            d = self._spline(tc, 1)
-        else:
-            slopes = np.diff(self.zero_rates) / np.diff(self.tenors)
-            idx = np.clip(np.searchsorted(self.tenors, tc, side="right") - 1, 0, slopes.size - 1)
-            d = slopes[idx]
-        d = np.where(inside, d, 0.0)
+        _, d = self._r_and_dr(t)
         return d if t.ndim else float(d)
 
     def discount(self, t):
@@ -216,9 +282,13 @@ class Curve:
         return df if t.ndim else float(df)
 
     def instantaneous_forward(self, t):
-        """Taux forward instantane f_M(0, t) = R(0, t) + t R'(0, t)."""
+        """Taux forward instantane f_M(0, t) = R(0, t) + t R'(0, t).
+
+        Continu partout, y compris aux deux piliers extremes.
+        """
         t = np.asarray(t, dtype=float)
-        f = self.zero_rate(t) + t * self.zero_rate_derivative(t)
+        r, d = self._r_and_dr(t)
+        f = r + t * d
         return f if t.ndim else float(f)
 
 
@@ -644,9 +714,17 @@ def simulate(
     int_x = np.zeros((n_paths, n_steps + 1))
     int_y = np.zeros((n_paths, n_steps + 1))
 
+    # Sur une grille uniforme la covariance conditionnelle ne depend que du
+    # pas : on ne factorise qu'une fois par valeur distincte de dt.
+    chol_cache: dict[float, np.ndarray] = {}
+
     for k in range(n_steps):
         dt = times[k + 1] - times[k]
-        chol = _robust_cholesky(step_covariance(dt, p))
+        key = round(float(dt), 12)
+        chol = chol_cache.get(key)
+        if chol is None:
+            chol = _robust_cholesky(step_covariance(dt, p))
+            chol_cache[key] = chol
         if antithetic:
             z = rng.standard_normal((n_base, 4))
             z = np.concatenate([z, -z], axis=0)
@@ -665,3 +743,191 @@ def simulate(
         int_y[:, k + 1] = int_y[:, k] + y_prev * hy + shocks[:, 3]
 
     return SimulationResult(times, x, y, int_x, int_y, curve, p)
+
+
+# ---------------------------------------------------------------------------
+# Volatilites integrees et prix d'options (eq. 38-52)
+# ---------------------------------------------------------------------------
+
+
+def zcb_option_volatility(t, T0, Tn, p: TwoFactorGaussianParams):
+    """Volatilite integree Sigmabar_P(t, T0, Tn) du ZC defaultable (eq. 40).
+
+    Racine de l'integrale, sur [t, T0], de la variance instantanee du prix
+    forward Pbar(u, T0, Tn). L'integrale est ici en forme fermee.
+    """
+    ax, ay, sx, sy, L, rho = p.a_x, p.a_y, p.sigma_x, p.sigma_y, p.L, p.rho
+    u = np.asarray(Tn, dtype=float) - np.asarray(T0, dtype=float)
+    v = np.asarray(T0, dtype=float) - np.asarray(t, dtype=float)
+    ex, ey = -np.expm1(-ax * u), -np.expm1(-ay * u)
+    var = (
+        sx**2 / (2.0 * ax**3) * ex**2 * -np.expm1(-2.0 * ax * v)
+        + L**2 * sy**2 / (2.0 * ay**3) * ey**2 * -np.expm1(-2.0 * ay * v)
+        + 2.0 * L * rho * sx * sy / (ax * ay * (ax + ay))
+        * ex * ey * -np.expm1(-(ax + ay) * v)
+    )
+    return np.sqrt(np.maximum(var, 0.0))
+
+
+def cbb_option_volatility(
+    t, T0, payment_times, amounts, x, y, curve: Curve,
+    p: TwoFactorGaussianParams, n_nodes: int = 64,
+):
+    """Volatilite integree Sigmabar_B(t, T0, Tn) de l'obligation a coupons
+    (eq. 47-48).
+
+    Contrairement au cas ZC, l'integrale n'a pas de primitive elementaire :
+    elle est evaluee par quadrature de Gauss-Legendre a ``n_nodes`` noeuds
+    sur [t, T0], comme l'indique le papier.
+
+    Les poids des flux sont geles a leur valeur en t (approximation
+    standard de "freezing") : seules les durations forward H_i(u, .)
+    dependent de la variable d'integration u. Seuls les flux posterieurs
+    a T0 interviennent, ce sont ceux que porte le forward.
+
+    ``x`` et ``y`` peuvent etre des tableaux : la quadrature est alors
+    vectorisee sur les etats des facteurs.
+    """
+    t, T0 = float(t), float(T0)
+    if T0 <= t:
+        raise ValueError("T0 doit etre strictement superieur a t.")
+    times = np.asarray(payment_times, dtype=float)
+    amounts = np.asarray(amounts, dtype=float)
+    mask = times > T0
+    if not np.any(mask):
+        raise ValueError("aucun flux posterieur a T0.")
+    times, amounts = times[mask], amounts[mask]
+
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    w = amounts * zero_coupon_price(t, times, x[..., None], y[..., None], curve, p)
+    w = w / np.sum(w, axis=-1, keepdims=True)              # poids gelés en t
+
+    nodes, weights = np.polynomial.legendre.leggauss(n_nodes)
+    half = 0.5 * (T0 - t)
+    u = (half * nodes + 0.5 * (T0 + t))[:, None]           # (n_nodes, 1)
+
+    # H_i(u, T_j) - H_i(u, T0), de forme (n_nodes, n_flux)
+    dx = h_factor(p.a_x, u, times[None, :]) - h_factor(p.a_x, u, T0)
+    dy = h_factor(p.a_y, u, times[None, :]) - h_factor(p.a_y, u, T0)
+
+    db_x = np.tensordot(w, dx, axes=([-1], [1]))           # (..., n_nodes)
+    db_y = np.tensordot(w, dy, axes=([-1], [1]))
+
+    sigma2 = (
+        p.sigma_x**2 * db_x**2
+        + p.eta**2 * db_y**2
+        + 2.0 * p.rho * p.sigma_x * p.eta * db_x * db_y
+    )
+    var = half * np.sum(weights * sigma2, axis=-1)
+    return np.sqrt(np.maximum(var, 0.0))
+
+
+def _black_call(forward_value, strike_value, vol):
+    """Call de Black en variables non actualisees.
+
+    ``forward_value`` = valeur en t des flux du sous-jacent posterieurs a
+    T0 ; ``strike_value`` = X * Pbar(t, T0). Renvoie F Phi(d1) - K Phi(d2).
+    """
+    F = np.asarray(forward_value, dtype=float)
+    K = np.asarray(strike_value, dtype=float)
+    vol = np.asarray(vol, dtype=float)
+    safe = np.maximum(vol, _TINY)
+    d1 = (np.log(F / K) + 0.5 * safe**2) / safe
+    price = F * norm.cdf(d1) - K * norm.cdf(d1 - safe)
+    return np.where(vol > _TINY, price, np.maximum(F - K, 0.0))
+
+
+def zcb_option_price(
+    t, T0, Tn, strike, x, y, curve: Curve, p: TwoFactorGaussianParams,
+    option_type: str = "call",
+):
+    """Prix d'une option europeenne knock-out sur ZC defaultable (eq. 42).
+
+        Call = Pbar(t, Tn) Phi(d1) - X Pbar(t, T0) Phi(d2)
+
+    Le put s'obtient par la parite call-put defaultable (eq. 58) :
+        Put = Call + X Pbar(t, T0) - Pbar(t, Tn).
+
+    L'option est supposee sans valeur en cas de defaut : la composante de
+    protection contre le defaut n'est pas evaluee ici (cf. papier).
+    """
+    if option_type not in ("call", "put"):
+        raise ValueError("option_type doit valoir 'call' ou 'put'.")
+    p_tn = zero_coupon_price(t, Tn, x, y, curve, p)
+    p_t0 = zero_coupon_price(t, T0, x, y, curve, p)
+    vol = zcb_option_volatility(t, T0, Tn, p)
+    call = _black_call(p_tn, strike * p_t0, vol)
+    return call if option_type == "call" else call + strike * p_t0 - p_tn
+
+
+def cbb_option_price(
+    t, T0, payment_times, amounts, strike, x, y, curve: Curve,
+    p: TwoFactorGaussianParams, option_type: str = "call", n_nodes: int = 64,
+):
+    """Prix d'une option europeenne knock-out sur obligation a coupons
+    defaultable (eq. 50).
+
+        Call = Bbar(t, Tn) Phi(d1) - X Pbar(t, T0) Phi(d2)
+
+    ou Bbar(t, Tn) designe la valeur en t des seuls flux posterieurs a T0
+    (c'est ce que porte le contrat forward). Le put suit la parite eq. 59,
+    ecrite ici sous sa forme reduite equivalente :
+
+        Put = Call + X Pbar(t, T0) - somme_{T_i > T0} K_i Pbar(t, T_i).
+
+    L'eq. 59 du papier exprime le meme resultat via une obligation
+    auxiliaire de maturite T0 : Bbar(t,T0) - Pbar(t,T0) vaut exactement la
+    somme des flux anterieurs a T0, que l'on retranche donc de Bbar(t,Tn).
+    """
+    if option_type not in ("call", "put"):
+        raise ValueError("option_type doit valoir 'call' ou 'put'.")
+    times = np.asarray(payment_times, dtype=float)
+    amounts = np.asarray(amounts, dtype=float)
+    mask = times > float(T0)
+    if not np.any(mask):
+        raise ValueError("aucun flux posterieur a T0.")
+    b_fwd = coupon_bond_price(t, times[mask], amounts[mask], x, y, curve, p)
+    p_t0 = zero_coupon_price(t, T0, x, y, curve, p)
+    vol = cbb_option_volatility(t, T0, times, amounts, x, y, curve, p, n_nodes)
+    call = _black_call(b_fwd, strike * p_t0, vol)
+    return call if option_type == "call" else call + strike * p_t0 - b_fwd
+
+
+def monte_carlo_option_price(
+    T0, payoff, n_paths: int, curve: Curve, p: TwoFactorGaussianParams,
+    seed: int | None = None, antithetic: bool = True,
+    control_maturity: float | None = None,
+):
+    """Prix Monte-Carlo d'un payoff europeen en T0 (eq. 32-35).
+
+    Sous l'hypothese de recovery of market value, le deflateur
+    exp(-int_0^T0 rbar) porte deja la survie : le knock-out au defaut est
+    automatique, il n'y a aucun temps de defaut a simuler.
+
+    Le schema de :func:`simulate` etant exact, UN SEUL pas jusqu'a T0
+    suffit pour un payoff europeen.
+
+    Parameters
+    ----------
+    payoff : callable (x, y) -> payoff en T0, evalue sur les facteurs.
+    control_maturity : si fourni (typiquement Tn), utilise D * Pbar(T0, Tn)
+        comme variable de controle, d'esperance connue Pbar_M(0, Tn).
+
+    Returns
+    -------
+    (prix, erreur standard)
+    """
+    sim = simulate([T0], n_paths, curve, p, seed=seed, antithetic=antithetic)
+    disc = sim.discount_factors()[:, -1]
+    x_t0, y_t0 = sim.x[:, -1], sim.y[:, -1]
+    values = disc * np.asarray(payoff(x_t0, y_t0), dtype=float)
+
+    if control_maturity is not None:
+        control = disc * zero_coupon_price(T0, control_maturity, x_t0, y_t0, curve, p)
+        var = control.var(ddof=1)
+        if var > 0:
+            beta = np.cov(values, control)[0, 1] / var
+            values = values - beta * (control - curve.discount(control_maturity))
+
+    return float(values.mean()), float(values.std(ddof=1) / np.sqrt(values.size))
