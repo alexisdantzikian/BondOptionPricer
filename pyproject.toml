@@ -1,0 +1,16 @@
+[project]
+name = "bondoptionpricer"
+version = "0.1.0"
+description = "Pricer d'options sur OAT sous un modèle gaussien à deux facteurs (mémoire MS FGDR)"
+requires-python = ">=3.12"
+dependencies = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "openpyxl",
+    "matplotlib",
+    "jupyter",
+    "nbformat",
+    "nbconvert",
+    "ipykernel",
+]
