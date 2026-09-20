@@ -13,4 +13,5 @@ dependencies = [
     "nbformat",
     "nbconvert",
     "ipykernel",
+    "scipy-stubs~=1.18.1",
 ]
