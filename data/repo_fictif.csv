@@ -1,0 +1,12 @@
+# COURBE REPO FICTIVE — à remplacer par une courbe de marché, au même format.
+# Spread du taux repo de l'OAT contre le taux zéro €STR de même maturité (taux zéro continus), en points de base.
+Tenor,Spread_bp
+1M,5
+3M,5
+6M,5
+1Y,5
+2Y,5
+5Y,5
+10Y,5
+15Y,5
+20Y,5
