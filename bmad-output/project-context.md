@@ -92,8 +92,8 @@ choix du track. Les décisions antérieures à BMAD sont dans `CONTEXTE.md` (§2
 
 - **Track:** bmad-method
 - **Stories defined:** 11 (`epics.md`, `stories/`)
-- **Stories done:** 5 (6.1, 8.1, 8.2, 8.3, 6.2)
-- **Stories remaining:** 6 (Epic 5 en attente de la courbe repo et de Q1 ; 6.3-6.5 bloquées par l'Epic 5)
+- **Stories done:** 11 / 11 (2026-10-02)
+- **Stories remaining:** 0 — ouvert : courbe repo de marché (Q2), données Bloomberg dans un dépôt public (Q4), validation d'ADR-013
 
 _Ce document planifie le travail. L'implémentation passe par des stories `ready-for-dev` ; le plugin de
 planification n'écrit ni ne teste de code._

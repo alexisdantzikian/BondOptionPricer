@@ -33,9 +33,9 @@ hypothèse de financement long terme explicite.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 5.1 | courbe-repo-marche | Brancher `data/repo_marche.csv` à la place de la courbe fictive | ready-for-dev — courbe fictive à structure par terme (amendée) |
-| 5.2 | financement-long-terme | Règle `FINANCEMENT_LONG`, spread par échéance, scénarios repo en translations | ready-for-dev — Q1 : « plat » |
-| 5.3 | retrait-mentions-fictif | Retirer toute mention de courbe fictive du notebook | ready-for-dev — mentions exactes de la courbe fictive (amendée) |
+| 5.1 | courbe-repo-marche | Brancher `data/repo_marche.csv` à la place de la courbe fictive | done |
+| 5.2 | financement-long-terme | Règle `FINANCEMENT_LONG`, spread par échéance, scénarios repo en translations | done |
+| 5.3 | retrait-mentions-fictif | Retirer toute mention de courbe fictive du notebook | done |
 
 **Cross-epic dependencies :**
 - Blocked by : Epic 6 (6.2) — sérialisation du notebook [Source: architecture.md#ADR-012]
@@ -65,9 +65,9 @@ cadrage, `bmad-output/reference/` [Source: architecture.md#ADR-009]
 |------|------|--------|--------|
 | 6.1 | execution-reference | Exécuter le notebook actuel et figer ses sorties et sa durée comme référence | done |
 | 6.2 | cellule-chiffres-cites | Ajouter la cellule `CHIFFRES` en fin de §11 | done |
-| 6.3 | lecture-resultats | Réécrire « Lecture des résultats » (§11) sur les sorties finales | ready-for-dev — bloquée par 5.3 |
-| 6.4 | conclusion-limites | Réécrire §12 (résultats, limites, perspectives) | ready-for-dev — bloquée par 6.3 |
-| 6.5 | cadrage-contexte-plan | Mettre à jour `CONTEXTE.md` et `PLAN.md` | ready-for-dev — bloquée par 6.4 |
+| 6.3 | lecture-resultats | Réécrire « Lecture des résultats » (§11) sur les sorties finales | done |
+| 6.4 | conclusion-limites | Réécrire §12 (résultats, limites, perspectives) | done |
+| 6.5 | cadrage-contexte-plan | Mettre à jour `CONTEXTE.md` et `PLAN.md` | done |
 
 **Cross-epic dependencies :**
 - Blocked by : Epic 8 (8.3) pour 6.2 ; Epic 5 (5.3) pour 6.3
@@ -113,9 +113,9 @@ expliquée par le biais de petit échantillon, spread ancré dans le cadre créd
 ## Delivery Tracking (count-based)
 
 - Total stories : 11
-- Done : 5 (6.1, 8.1, 8.2, 8.3, 6.2 — 2026-10-01)
-- Remaining : 6 (backlog en attente de la courbe repo et de Q1 : 5.1, 5.2, 5.3 ; ready-for-dev bloquées par l'epic 5 : 6.3, 6.4, 6.5)
-- Completion rate : 5 / 11
+- Done : 11 (6.1, 8.1, 8.2, 8.3, 6.2 le 2026-10-01 ; 5.1, 5.2, 5.3, 6.3, 6.4, 6.5 le 2026-10-02)
+- Remaining : 0
+- Completion rate : 11 / 11
 
 ## Notes
 
