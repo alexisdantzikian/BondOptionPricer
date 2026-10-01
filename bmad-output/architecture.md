@@ -128,6 +128,7 @@ sections antérieures (ADR-002) ; §12 et la « Lecture des résultats » sont d
 | ADR-010 | Estimation du facteur spread : GMM retenue, biais AR(1) par simulation | Accepted | FR-020, FR-021, FR-022 |
 | ADR-011 | Édition, exécution et commit du notebook | Accepted | NFR-001, NFR-003, NFR-004 |
 | ADR-012 | Pas de parallélisme sur le notebook | Accepted | NFR-004 |
+| ADR-013 | GMM : pondération diagonale retenue, GMM efficace pour le test J (révise ADR-010) | Accepted | FR-021 |
 
 ### ADR-001: Notebook unique, monolithe en couches
 
@@ -442,6 +443,37 @@ de cellules).
 
 **Revisit when :** jamais.
 
+### ADR-013: GMM — pondération diagonale retenue, GMM efficace pour le test J
+
+**Status:** Accepted (2026-10-01, pendant la story 8.2)   **Drives:** FR-021   **Supersedes :** la règle
+« retenu : étape 2 si cond(S) < 1e8 » d'ADR-010 (le reste d'ADR-010 est inchangé)
+
+**Context:** le déclencheur de révision d'ADR-010 s'est produit à la première exécution : la GMM efficace
+($W = S^{-1}$, cond(S) = 4,0e7 donc étape 2 selon la règle) donnait $\rho = 0{,}028$, hors de
+`[RHO_MIN, RHO_MAX]` = [0,064 ; 0,434] et sous **chacune** des six corrélations observées (0,064 à 0,162),
+et $\sigma_y$ sous chacune des six vols, avec un rejet fort ($J = 73{,}7$, 10 ddl). Diagnostic : les erreurs
+d'estimation des moments sont très corrélées entre tenors (0,8 à 0,98 entre tenors voisins), et $S^{-1}$
+donne aux corrélations des poids implicites négatifs (−0,74 au 25 ans, +1,30 au 30 ans) : estimation
+extrapolée. C'est le biais de petit échantillon de la GMM efficace sur les structures de covariance
+(Altonji et Segal, 1996, *Journal of Business & Economic Statistics*).
+
+**Decision:** l'estimateur **retenu** est la GMM à pondération diagonale $W_1 = \mathrm{diag}(S)^{-1}$, avec
+écarts-types sandwich $(G'W_1G)^{-1}G'W_1SW_1G(G'W_1G)^{-1}$. La GMM efficace $W_2 = S^{-1}$ est toujours
+calculée et sert au **test J de Hansen** (à son propre optimum). Le notebook imprime les deux estimations et
+les poids implicites de chaque corrélation dans $\hat\rho$ pour les deux pondérations. cond(S) reste imprimé :
+au-delà de 1e8, $J$ est indicatif.
+
+**Consequences — LOCKED :** entité `GMM` : `theta`, `se` (retenu, W1), `etape` = 1, `theta_eff`, `se_eff`
+(efficace, W2), `J`, `p_value`, `dof` (test, W2), `cond_S`, `borne_a_y`, `moments` (ajustement retenu),
+`poids_rho`, `poids_rho_eff`, `n`. Résultat : $a_y = 0{,}001$ (borne), $\sigma_y = 0{,}3374\,\%$
+(écart-type 0,0182 %), $\rho = 0{,}130$ (écart-type 0,040).
+
+**Alternatives :** garder la GMM efficace — rejeté : estimation hors de tous les moments observés,
+indéfendable ; pondération identité — équivalente ici ($\rho = 0{,}128$) mais dépend des unités des moments ;
+réduire le nombre de moments — perd l'information des autres tenors.
+
+**Revisit when :** jamais pendant le mémoire.
+
 ---
 
 ## 4. Component Design — Composants
@@ -538,9 +570,11 @@ date 08/09/2026).
 `p_cal` (retenu, §9.3).
 
 ### Entity: `GMM` (dict, §9.3)
-**Attributes :** `theta` (dict `a_y, s_y, rho`), `se` (dict, mêmes clés ; `None` pour un paramètre à sa
-borne), `J` (float), `p_value` (float), `dof` (int), `etape` (1 ou 2), `cond_S` (float),
-`borne_a_y` (bool), `moments` (DataFrame : `tenor, vol_obs, vol_mod, corr_obs, corr_mod`), `n` (int).
+**Attributes :** `theta` (dict `a_y, s_y, rho`, estimateur retenu W1), `se` (dict, mêmes clés ; `None`
+pour un paramètre à sa borne), `etape` (= 1, ADR-013), `theta_eff`, `se_eff` (GMM efficace W2), `J`
+(float), `p_value` (float), `dof` (int) — test à l'optimum W2, `cond_S` (float), `borne_a_y` (bool),
+`moments` (DataFrame : `tenor, vol_obs, vol_mod, corr_obs, corr_mod`, ajustement retenu), `poids_rho`,
+`poids_rho_eff` (ndarray[6], poids implicites des corrélations dans $\hat\rho$), `n` (int).
 
 ### Entity: `AR1` (DataFrame, §9.4)
 **Index :** fenêtre (`"2021-2026"`, `"3 ans"`, `"1 an"`). **Columns :** `n`, `a_obs`, `moy_a0`, `q05_a0`,
@@ -784,6 +818,7 @@ consécutifs ; **inférence indirecte** correction d'un estimateur biaisé par s
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-10-01 | Winston (Architect) | Initial architecture |
+| 1.2 | 2026-10-01 | story 8.2 | ADR-013 : pondération diagonale retenue pour la GMM (révise ADR-010) ; entité `GMM` complétée ; `gmm_spread` accepte `departs` (points de départ) |
 | 1.1 | 2026-10-01 | bmad-epics-and-stories | §6 : `tab_diag, mc, mcs, res, fwd, scen_repo, scen_sy, scen_rho, scen_ay` promus en noms publics ; §5 : `bmad-output/reference/` contient aussi `extraire_sorties.py` (story 6.1) |
 
 ---

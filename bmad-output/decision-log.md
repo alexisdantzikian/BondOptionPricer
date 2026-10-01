@@ -18,6 +18,19 @@ réécrire ni supprimer une entrée : la remplacer par une nouvelle entrée qui 
 
 ---
 
+### 2026-10-01 — GMM : pondération diagonale retenue (ADR-013)
+- **Decision:** L'estimateur retenu du facteur spread est la GMM à pondération diagonale
+  $W_1 = \mathrm{diag}(S)^{-1}$ : $a_y = 0{,}001$ (borne), $\sigma_y = 0{,}3374\,\%$ (é.-t. 0,0182 %),
+  $\rho = 0{,}130$ (é.-t. 0,040). La GMM efficace $S^{-1}$ ne sert qu'au test J
+  ($J = 73{,}7$, 10 ddl, p = 8,7e-12 : rejet du spread à un facteur).
+- **Rationale:** Le déclencheur d'ADR-010 s'est produit : la GMM efficace donnait $\rho = 0{,}028$, sous
+  les six corrélations observées, par des poids implicites négatifs, dus aux erreurs de moments corrélées
+  à 0,8-0,98 entre tenors (biais d'Altonji et Segal, 1996). La pondération diagonale donne un $\rho$ dans
+  l'enveloppe des moments ; l'écart à l'estimation en deux temps (0,152, tenor 20 ans seul) vient de la
+  prise en compte des autres tenors. Effet : call ATM −0,4 % à −0,9 % selon l'échéance.
+- **Made by:** Claude Code pendant la story 8.2. Décision d'architecture à faire valider par l'auteur.
+- **Supersedes:** la règle de pondération d'ADR-010 (entrée « Architecture v1.0 »)
+
 ### 2026-10-01 — Backlog : 11 stories compilées (`epics.md`, `stories/`)
 - **Decision:** Epics 5 (repo, 3 stories), 6 (cohérence, 5), 8 (spread, 3). Ordre :
   `6.1 → 8.1 → 8.2 → 8.3 → 6.2 → 5.1 → 5.2 → 5.3 → 6.3 → 6.4 → 6.5`. 8 stories `ready-for-dev` (6.x, 8.x),
