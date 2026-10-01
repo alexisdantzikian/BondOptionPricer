@@ -63,8 +63,8 @@ cadrage, `bmad-output/reference/` [Source: architecture.md#ADR-009]
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 6.1 | execution-reference | Exécuter le notebook actuel et figer ses sorties et sa durée comme référence | ready-for-dev |
-| 6.2 | cellule-chiffres-cites | Ajouter la cellule `CHIFFRES` en fin de §11 | ready-for-dev |
+| 6.1 | execution-reference | Exécuter le notebook actuel et figer ses sorties et sa durée comme référence | done |
+| 6.2 | cellule-chiffres-cites | Ajouter la cellule `CHIFFRES` en fin de §11 | done |
 | 6.3 | lecture-resultats | Réécrire « Lecture des résultats » (§11) sur les sorties finales | ready-for-dev — bloquée par 5.3 |
 | 6.4 | conclusion-limites | Réécrire §12 (résultats, limites, perspectives) | ready-for-dev — bloquée par 6.3 |
 | 6.5 | cadrage-contexte-plan | Mettre à jour `CONTEXTE.md` et `PLAN.md` | ready-for-dev — bloquée par 6.4 |
@@ -95,9 +95,9 @@ expliquée par le biais de petit échantillon, spread ancré dans le cadre créd
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 8.1 | biais-ar1 | §9.4 : distribution simulée de l'estimateur AR(1) et vitesse corrigée | ready-for-dev |
-| 8.2 | gmm-spread | §9.3 : GMM retenue, `p_cal` construit ici, scénario a_y du §11 | ready-for-dev |
-| 8.3 | cadre-rmv | Markdowns §7 et §9 : cadre RMV, invariance P/Q, crédit / liquidité | ready-for-dev |
+| 8.1 | biais-ar1 | §9.4 : distribution simulée de l'estimateur AR(1) et vitesse corrigée | done |
+| 8.2 | gmm-spread | §9.3 : GMM retenue, `p_cal` construit ici, scénario a_y du §11 | done |
+| 8.3 | cadre-rmv | Markdowns §7 et §9 : cadre RMV, invariance P/Q, crédit / liquidité | done |
 
 **Cross-epic dependencies :**
 - Blocked by : Epic 6 (6.1) — référence d'exécution
@@ -113,9 +113,9 @@ expliquée par le biais de petit échantillon, spread ancré dans le cadre créd
 ## Delivery Tracking (count-based)
 
 - Total stories : 11
-- Done : 0
-- Remaining : 11 (ready-for-dev : 8 ; backlog en attente d'entrées externes : 3)
-- Completion rate : 0 / 11
+- Done : 5 (6.1, 8.1, 8.2, 8.3, 6.2 — 2026-10-01)
+- Remaining : 6 (backlog en attente de la courbe repo et de Q1 : 5.1, 5.2, 5.3 ; ready-for-dev bloquées par l'epic 5 : 6.3, 6.4, 6.5)
+- Completion rate : 5 / 11
 
 ## Notes
 

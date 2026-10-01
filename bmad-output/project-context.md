@@ -91,8 +91,9 @@ choix du track. Les décisions antérieures à BMAD sont dans `CONTEXTE.md` (§2
 ## Planning Status (count-based)
 
 - **Track:** bmad-method
-- **Stories defined:** 11 (`epics.md`, `stories/`) — 8 `ready-for-dev`, 3 `backlog` (Epic 5)
-- **Stories remaining:** 11
+- **Stories defined:** 11 (`epics.md`, `stories/`)
+- **Stories done:** 5 (6.1, 8.1, 8.2, 8.3, 6.2)
+- **Stories remaining:** 6 (Epic 5 en attente de la courbe repo et de Q1 ; 6.3-6.5 bloquées par l'Epic 5)
 
 _Ce document planifie le travail. L'implémentation passe par des stories `ready-for-dev` ; le plugin de
 planification n'écrit ni ne teste de code._
