@@ -13,10 +13,10 @@
 
 | # | Question | Owner | Needed By | Status |
 |---|----------|-------|-----------|--------|
-| Q1 | Quelle hypothèse de financement au-delà du dernier tenor de repo coté (FR-014) ? Options : (a) spread plat au niveau du dernier tenor coté ; (b) raccordement linéaire vers le spread OAT–€STR de la courbe risquée (financement au taux de l'OAT à l'horizon long) ; (c) spread repo constant fixé par jugement de desk. Pour mémoire, sur la courbe fictive, le call ATM 15 ans vaut 1,0 à 2,9 entre −25 et +15 bp, et 13,5 avec un financement au taux de l'OAT. | auteur | avant STORY-002 | ouverte |
-| Q2 | Source et format exacts de la courbe repo de marché (ticker Bloomberg, tenors disponibles, taux repo ou spread contre €STR, base de taux) ? | auteur | avant STORY-001 | ouverte |
+| Q1 | Quelle hypothèse de financement au-delà du dernier tenor de repo coté (FR-014) ? Options : (a) spread plat au niveau du dernier tenor coté ; (b) raccordement linéaire vers le spread OAT–€STR de la courbe risquée (financement au taux de l'OAT à l'horizon long) ; (c) spread repo constant fixé par jugement de desk. Pour mémoire, sur la courbe fictive, le call ATM 15 ans vaut 1,0 à 2,9 entre −25 et +15 bp, et 13,5 avec un financement au taux de l'OAT. | auteur | avant STORY-002 | close le 2026-10-01 : (a) « plat », choix délégué par l'auteur |
+| Q2 | Source et format exacts de la courbe repo de marché (ticker Bloomberg, tenors disponibles, taux repo ou spread contre €STR, base de taux) ? | auteur | avant STORY-001 | ouverte — en attendant, courbe fictive à structure par terme (1W-1Y) |
 | Q3 | Faut-il réaliser FR-018 ($\sigma_x(t)$ par morceaux) dans le mémoire, ou la laisser en perspective ? | auteur | — | close le 2026-10-01 : non (voir `decision-log.md`) |
-| Q4 | Le dépôt GitHub `alexisdantzikian/BondOptionPricer` est-il privé ? Il suit `data/market data bloom.xlsx`. | auteur | avant tout push de la courbe repo | ouverte |
+| Q4 | Le dépôt GitHub `alexisdantzikian/BondOptionPricer` est-il privé ? Il suit `data/market data bloom.xlsx`. | auteur | avant tout push de la courbe repo | close le 2026-10-01 : **public** — le classeur Bloomberg et les sorties du notebook sont publiés ; rendre le dépôt privé ou retirer `data/` (et purger l'historique) relève de l'auteur |
 | Q5 | Durée d'exécution actuelle du notebook (référence de NFR-007) — mesurée par STORY-004. | Claude Code | STORY-004 | ouverte |
 
 ---

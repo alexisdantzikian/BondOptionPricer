@@ -313,6 +313,12 @@ courbes plates −25 / 0 / +5 / +15 bp autour d'un « cas central +5 bp ».
 aucun autre chemin de fichier repo dans le notebook ; le mot « fictif » disparaît du code et du texte à la
 fin d'EPIC-005.
 
+**Amendement v1.3 (2026-10-01) :** faute de courbe de marché, `data/repo_fictif.csv` reçoit une courbe
+fictive à structure par terme (1W à 1Y) ; `FICHIER_REPO` le désigne toujours, et le passage à
+`data/repo_marche.csv` se fera à l'arrivée d'une courbe de marché. Les mentions « fictive » restent, mais
+décrivent exactement la courbe. `FINANCEMENT_LONG = "plat"` (Q1 tranchée). Libellés des scénarios :
+`courbe retenue ±b bp`.
+
 **Alternatives :** écrire l'hypothèse longue comme des lignes du CSV — rejeté : mélange cotations et
 hypothèse, et la règle ne serait plus lisible dans le notebook ; garder les scénarios plats absolus —
 rejeté : ils n'ont plus de sens autour d'une courbe de marché non plate.
@@ -818,6 +824,7 @@ consécutifs ; **inférence indirecte** correction d'un estimateur biaisé par s
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2026-10-01 | Winston (Architect) | Initial architecture |
+| 1.3 | 2026-10-01 | auteur | ADR-008 amendé : courbe fictive à structure par terme dans `repo_fictif.csv`, règle « plat » |
 | 1.2 | 2026-10-01 | story 8.2 | ADR-013 : pondération diagonale retenue pour la GMM (révise ADR-010) ; entité `GMM` complétée ; `gmm_spread` accepte `departs` (points de départ) |
 | 1.1 | 2026-10-01 | bmad-epics-and-stories | §6 : `tab_diag, mc, mcs, res, fwd, scen_repo, scen_sy, scen_rho, scen_ay` promus en noms publics ; §5 : `bmad-output/reference/` contient aussi `extraire_sorties.py` (story 6.1) |
 

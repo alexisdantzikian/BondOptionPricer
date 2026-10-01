@@ -599,4 +599,5 @@ contrat de non-régression.
 |---------|------|--------|---------|
 | 1.0 | 2026-10-01 | auteur + Claude Code | première version, à partir de `CONTEXTE.md`, `PLAN.md` et du notebook |
 | 1.1 | 2026-10-01 | auteur + Claude Code | FR-018 ($\sigma_x(t)$ par morceaux) passe en Won't ; EPIC-007 abandonné, STORY-009/010 retirées ; limite ajoutée à STORY-007 |
+| 1.3 | 2026-10-01 | auteur + Claude Code | FR-013 provisoirement satisfaite par une courbe fictive à structure par terme (1W-1Y) dans `data/repo_fictif.csv`, faute de données de marché ; FR-014 : règle « plat » (Q1) ; NFR-008 : dépôt public (Q4), non satisfaite |
 | 1.2 | 2026-10-01 | auteur + Claude Code | EPIC-008 « Estimation du facteur spread » : FR-020 (biais AR(1)), FR-021 (GMM, estimateur retenu), FR-022 (cadre RMV, crédit / liquidité) ; STORY-011 à 013 ; FR-017 et STORY-007 complétées |

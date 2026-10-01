@@ -18,6 +18,22 @@ réécrire ni supprimer une entrée : la remplacer par une nouvelle entrée qui 
 
 ---
 
+### 2026-10-01 — Courbe repo fictive à structure par terme ; Q1 « plat » ; dépôt public
+- **Decision:** (1) Pas de courbe repo de marché disponible : `data/repo_fictif.csv` reçoit une courbe
+  **fictive** à structure par terme, cotée de 1 semaine à 1 an (+2, +3, +4, +5, +5,5, +6 bp contre
+  l'€STR pour 1W, 1M, 3M, 6M, 9M, 1Y), au lieu de +5 bp à tous les tenors jusqu'à 20 ans. Le fichier garde
+  son nom ; elle reste signalée comme fictive. (2) Q1 : au-delà du dernier tenor coté (1 an), le spread
+  reste au niveau du dernier tenor (`FINANCEMENT_LONG = "plat"`). (3) Q4 : le dépôt GitHub est public.
+- **Rationale:** Demande de l'auteur (« crée une courbe fictive de repo »), qui délègue aussi le choix
+  de la règle longue. Une courbe limitée aux tenors où le repo à terme se traite exerce tout le mécanisme
+  de l'epic 5 (`T_max`, échéances au-delà signalées, translations) ; une courbe de marché le remplacera
+  par un simple changement de fichier (NFR-006). La règle « plat » est la plus simple et la plus neutre ;
+  la sensibilité du §11 (±25 bp, financement au taux de l'OAT) en mesure l'enjeu. Dépôt public : les
+  données Bloomberg de `data/` y sont publiées (NFR-008 non satisfaite, voir addendum Q4).
+- **Made by:** auteur (courbe fictive, dépôt public) ; Claude Code (valeurs de la courbe, règle « plat »)
+- **Supersedes:** FR-013 « courbe de marché » reste l'objectif, la courbe fictive est provisoire ;
+  stories 5.1 et 5.3 amendées.
+
 ### 2026-10-01 — GMM : pondération diagonale retenue (ADR-013)
 - **Decision:** L'estimateur retenu du facteur spread est la GMM à pondération diagonale
   $W_1 = \mathrm{diag}(S)^{-1}$ : $a_y = 0{,}001$ (borne), $\sigma_y = 0{,}3374\,\%$ (é.-t. 0,0182 %),

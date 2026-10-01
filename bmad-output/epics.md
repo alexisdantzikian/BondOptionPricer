@@ -33,9 +33,9 @@ hypothèse de financement long terme explicite.
 
 | ID | Slug | Intent | Status |
 |------|------|--------|--------|
-| 5.1 | courbe-repo-marche | Brancher `data/repo_marche.csv` à la place de la courbe fictive | backlog — attend la courbe (Q2) |
-| 5.2 | financement-long-terme | Règle `FINANCEMENT_LONG`, spread par échéance, scénarios repo en translations | backlog — attend Q1 |
-| 5.3 | retrait-mentions-fictif | Retirer toute mention de courbe fictive du notebook | backlog — suit 5.2 |
+| 5.1 | courbe-repo-marche | Brancher `data/repo_marche.csv` à la place de la courbe fictive | ready-for-dev — courbe fictive à structure par terme (amendée) |
+| 5.2 | financement-long-terme | Règle `FINANCEMENT_LONG`, spread par échéance, scénarios repo en translations | ready-for-dev — Q1 : « plat » |
+| 5.3 | retrait-mentions-fictif | Retirer toute mention de courbe fictive du notebook | ready-for-dev — mentions exactes de la courbe fictive (amendée) |
 
 **Cross-epic dependencies :**
 - Blocked by : Epic 6 (6.2) — sérialisation du notebook [Source: architecture.md#ADR-012]
