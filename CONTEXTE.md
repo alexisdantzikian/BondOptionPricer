@@ -25,8 +25,12 @@ Nature du livrable : mémoire de recherche. Chaque étape est justifiée, vérif
   $X = K + CC(T_0)$, le coupon couru à l'échéance étant connu.
 - **Forward repo** : cash-and-carry au taux €STR + spread repo,
   $F = \big[\bar B^M(0) - \sum_{T_i \le T_0} K_i P^{repo}(0,T_i)\big] / P^{repo}(0,T_0)$,
-  $P^{repo} = P^M e^{-s^{repo}(T)T}$. La courbe repo (`data/repo_fictif.csv`) est **fictive** (+5 bp) en
-  attendant une courbe de marché, à remplacer au même format.
+  $P^{repo} = P^M e^{-s^{repo}(T)T}$. La courbe repo (`data/repo_fictif.csv`) est **fictive**, faute de
+  cotations : de +2 bp à 1 semaine à +6 bp à 1 an contre l'€STR, cotée jusqu'à 1 an comme un marché de repo à
+  terme. Au-delà, le repo n'est pas liquide : le spread est maintenu au niveau du dernier tenor coté
+  (`FINANCEMENT_LONG = "plat"`, §8.2 du notebook), hypothèse dont le §11 mesure l'effet (translations de
+  −25 à +25 bp, financement au taux de l'OAT). Une courbe de marché la remplacera au même format, sans
+  modifier le code.
 - Aucune comparaison avec les résultats chiffrés du papier ni avec des options cotées.
 
 ## 3. Le modèle
@@ -59,16 +63,29 @@ $$\bar r(t) = \bar\alpha(t) + x(t) + y(t),\qquad dx = -a_x x\,dt + \sigma_x dW_x
 - **Facteur spread** :
   - la procédure du papier (fit de la courbe OAT, éq. 56-57) n'identifie rien : $\bar P^\ast = \bar P^M e^{-\bar V/2}$,
     elle minimise la convexité, solution exacte $\rho = -1$, $a_y = a_x$, $\sigma_y = \sigma_x$ ;
-  - retenu : $(a_y,\sigma_y)$ par la **structure par terme des volatilités** du spread OAT–€STR (tenors
-    5-30 ans), qui identifie la vitesse de retour risque-neutre ; $\rho$ par la corrélation des variations
-    quotidiennes au tenor 20 ans ; historiques 01/2021 → 08/09/2026 ; tenor 2 ans exclu (rupture du générique
-    le 22/01/2024).
+  - retenu : $(a_y,\sigma_y,\rho)$ estimés **ensemble par la méthode des moments généralisée** (§9.3) sur
+    12 moments des variations quotidiennes : les volatilités annualisées du spread OAT–€STR aux tenors
+    5-30 ans (modèle $\sigma_y H_{a_y}(\tau)/\tau$, dont la structure par terme identifie la vitesse de retour
+    risque-neutre) et les corrélations spread / swap €STR de même tenor (modèle $\rho$) ; covariance des
+    moments par bootstrap par blocs mobiles. Pondération **diagonale** retenue : la pondération efficace
+    $S^{-1}$, avec des erreurs de moments très corrélées entre tenors, donne des poids négatifs et un $\rho$
+    hors de toutes les corrélations observées (biais d'Altonji et Segal, 1996) ; elle sert au test J de
+    Hansen, qui rejette le spread à un facteur. L'estimation en deux temps (vols, puis corrélation au tenor
+    20 ans) reste imprimée en comparaison ; historiques 01/2021 → 08/09/2026 ; tenor 2 ans exclu (rupture du
+    générique le 22/01/2024) ;
+  - la vitesse de retour **historique** (AR(1) du niveau du spread) varie avec la fenêtre par biais de petit
+    échantillon ; sa loi est simulée sous une vitesse nulle et elle est corrigée par inférence indirecte :
+    compatible avec une vitesse nulle (§9.4) ;
+  - méthodes (GMM, biais de petit échantillon, pricing à intensité) tirées du cours de Monfort, Pegoraro et
+    Renne, *Econometrics of Commodity and Asset Pricing*, cours 5 (ENSAE 2025-2026),
+    `doc/econo modele affine.pdf`.
 
 ## 6. Validation
 
 Recalage exact des courbes, dérivées par différences finies, quadratures, parités, cas limites
 ($\sigma_y \to 0$ ⇒ Black 1F), Jamshidian en 1F, Monte-Carlo exact du vecteur gaussien
-$(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation, avec recentrage.
+$(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation, avec recentrage. La cellule « Chiffres cités » (fin du
+§11) imprime chaque chiffre de la lecture des résultats et de la conclusion, formaté comme dans le texte.
 
 ## 7. Données (Bloomberg, clôture du 08/09/2026, règlement 10/09/2026)
 
@@ -78,7 +95,7 @@ $(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation, avec recentrage.
 | — `Swaption cube` | vols normales ATM EUR, 21 expiries × 14 tenors |
 | — `Liste OAT` | 19 titres (5 zéro-coupons courts, 14 OAT 2028 → 2072) |
 | — `Zield Histo OAT`, `Yield Histo ESTR` | historiques quotidiens 2, 5, 10, 15, 20, 25, 30 ans depuis 01/2021 |
-| `data/repo_fictif.csv` | spread repo contre €STR par tenor, **fictif** |
+| `data/repo_fictif.csv` | spread repo contre €STR, tenors 1 semaine → 1 an, **fictif** (structure par terme inventée) |
 
 ## 8. Conventions et simplifications
 
@@ -98,5 +115,7 @@ $(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation, avec recentrage.
 | Contrat et forward | forward et numéraire issus de la courbe risquée | option vanille collatéralisée €STR, forward repo, strike clean |
 | $\bar\Sigma_B$ | intégration numérique | fermée sous poids gelés, poids à leur valeur forward recentrée |
 | Contrôle 1F | — | Jamshidian exact |
-| Calibration du spread | fit de la courbe risquée | structure par terme des vols historiques du spread |
+| Lien avec le crédit | spread issu d'une intensité de défaut et d'une perte | spread modélisé directement, justifié par le recouvrement en valeur de marché (seul le produit perte × intensité est identifié) |
+| Calibration du spread | fit de la courbe risquée | GMM sur la structure par terme des vols et les corrélations historiques du spread, pondération diagonale, test J |
+| Vitesse de retour historique | — | biais de petit échantillon mesuré par simulation, corrigé par inférence indirecte |
 | Validation | Monte-Carlo | Monte-Carlo exact sans discrétisation, IC, erreur par strike et par échéance |
