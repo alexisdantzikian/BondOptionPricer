@@ -16,6 +16,20 @@ Two-Factor Gaussian Model for Risky Rates Modeling*, draft, `doc/13. Russo et al
 
 Nature du livrable : mémoire de recherche. Chaque étape est justifiée, vérifiée et lisible, pas optimisée.
 
+**Question de recherche** : faut-il modéliser le spread OAT–€STR comme un facteur de risque à part pour pricer
+une option européenne sur OAT, et peut-on en identifier les paramètres avec les données disponibles ?
+
+| | Hypothèse | Verdict du notebook |
+|---|---|---|
+| H1 | La courbe OAT identifie le facteur spread (procédure de Russo et al.) | rejetée (§9.1) |
+| H2 | L'historique l'identifie sous la mesure de pricing, vitesse de retour comprise | confirmée en partie : $a_y \approx 0$, $\rho$ instable, test J rejeté (§9.2-9.3) |
+| H3 | Le facteur spread renchérit sensiblement l'option | confirmée : +17 à 18 % à la monnaie ; vols réalisées cohérentes (§11) |
+| H4 | Cet effet exige deux facteurs | rejetée : un Hull-White 1F à la volatilité totale reproduit les prix à 1,9 % près (§11) |
+| H5 | La formule fermée est assez précise | confirmée à la monnaie ; 1,4 à 2 % à ±10 % du forward (§5, §8, §10) |
+
+Ordre du notebook : données et courbes (1-3), modèle et formule sur paramètres de test (4-7), calibration
+(8-9), validation (10), résultats et conclusion (11-12), annexes A (vitesse historique) et B (chiffres cités).
+
 ## 2. Le contrat
 
 - **Option vanille collatéralisée** (€STR), telle qu'elle se traite en banque d'investissement : call / put
@@ -71,12 +85,12 @@ $$\bar r(t) = \bar\alpha(t) + x(t) + y(t),\qquad dx = -a_x x\,dt + \sigma_x dW_x
     moments par bootstrap par blocs mobiles. Pondération **diagonale** retenue : la pondération efficace
     $S^{-1}$, avec des erreurs de moments très corrélées entre tenors, donne des poids négatifs et un $\rho$
     hors de toutes les corrélations observées (biais d'Altonji et Segal, 1996) ; elle sert au test J de
-    Hansen, qui rejette le spread à un facteur. L'estimation en deux temps (vols, puis corrélation au tenor
-    20 ans) reste imprimée en comparaison ; historiques 01/2021 → 08/09/2026 ; tenor 2 ans exclu (rupture du
-    générique le 22/01/2024) ;
-  - la vitesse de retour **historique** (AR(1) du niveau du spread) varie avec la fenêtre par biais de petit
-    échantillon ; sa loi est simulée sous une vitesse nulle et elle est corrigée par inférence indirecte :
-    compatible avec une vitesse nulle (§9.4) ;
+    Hansen, qui rejette le spread à un facteur. Robustesse : ajustement de la structure par terme des vols
+    fenêtre par fenêtre (2021-2026, trois ans, un an) ; historiques 01/2021 → 08/09/2026 ; tenor 2 ans exclu
+    (rupture du générique le 22/01/2024) ;
+  - la vitesse de retour **historique** (AR(1) du niveau du spread), qui n'entre pas dans le pricing, varie
+    avec la fenêtre par biais de petit échantillon ; sa loi est simulée sous une vitesse nulle et elle est
+    corrigée par inférence indirecte : compatible avec une vitesse nulle (annexe A) ;
   - méthodes (GMM, biais de petit échantillon, pricing à intensité) tirées du cours de Monfort, Pegoraro et
     Renne, *Econometrics of Commodity and Asset Pricing*, cours 5 (ENSAE 2025-2026),
     `doc/econo modele affine.pdf`.
@@ -85,8 +99,15 @@ $$\bar r(t) = \bar\alpha(t) + x(t) + y(t),\qquad dx = -a_x x\,dt + \sigma_x dW_x
 
 Recalage exact des courbes, dérivées par différences finies, quadratures, parités, cas limites
 ($\sigma_y \to 0$ ⇒ Black 1F), Jamshidian en 1F, Monte-Carlo exact du vecteur gaussien
-$(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation, avec recentrage. La cellule « Chiffres cités » (fin du
-§11) imprime chaque chiffre de la lecture des résultats et de la conclusion, formaté comme dans le texte.
+$(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation, avec recentrage. Au §11, deux contrôles de la
+conclusion : un Hull-White 1F sur la courbe OAT à la volatilité totale $\sigma_{eq}$ (le modèle 2F calibré s'y
+ramène à 1,9 % près), et les volatilités réalisées des taux 20 ans (rapport OAT / €STR 1,17 contre 1,18 dans le
+modèle). L'annexe B imprime chaque chiffre de la lecture des résultats et de la conclusion, formaté comme dans
+le texte.
+
+Le recentrage $\delta$ (§7.3) est nul quand le spread repo égale le spread de l'OAT ; sinon il reporte dans la
+moyenne du prix la perte que le modèle gaussien ne contient pas (dispersion sans saut). Avec la courbe retenue,
+il reste entre −3 et 33 bp.
 
 ## 7. Données (Bloomberg, clôture du 08/09/2026, règlement 10/09/2026)
 
@@ -118,5 +139,6 @@ $(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation, avec recentrage. La cel
 | Contrôle 1F | — | Jamshidian exact |
 | Lien avec le crédit | spread issu d'une intensité de défaut et d'une perte | spread modélisé directement, justifié par le recouvrement en valeur de marché (seul le produit perte × intensité est identifié) |
 | Calibration du spread | fit de la courbe risquée | GMM sur la structure par terme des vols et les corrélations historiques du spread, pondération diagonale, test J |
-| Vitesse de retour historique | — | biais de petit échantillon mesuré par simulation, corrigé par inférence indirecte |
+| Vitesse de retour historique | — | biais de petit échantillon mesuré par simulation, corrigé par inférence indirecte (annexe A) |
+| Nécessité du second facteur | — | testée : avec les paramètres estimés, un 1F à la volatilité totale suffit à 1,9 % près |
 | Validation | Monte-Carlo | Monte-Carlo exact sans discrétisation, IC, erreur par strike et par échéance |

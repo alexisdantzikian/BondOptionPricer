@@ -18,6 +18,24 @@ réécrire ni supprimer une entrée : la remplacer par une nouvelle entrée qui 
 
 ---
 
+### 2026-10-03 — Restructuration du notebook autour d'une question de recherche
+- **Decision:** (1) Introduction : problématique et cinq hypothèses H1-H5 (test, section) ; la conclusion
+  rend un verdict sur chacune. (2) Ordre : modèle et formule (sections 6-7, sur paramètres de test) avant la
+  calibration (8 taux, 9 spread). (3) §9 : la GMM diagonale est le seul estimateur ; l'estimation en deux
+  temps n'est plus présentée comme concurrente (ajustement par fenêtre = robustesse), le tableau des poids
+  implicites est remplacé par une ligne. (4) Vitesse AR(1) historique en annexe A, chiffres cités en annexe
+  B, contrôle de développeur du §11 retiré. (5) Nouveaux résultats : lecture économique de $\delta$ (§7.3),
+  F / M / $\delta$ calibrés, Hull-White 1F équivalent (H4), volatilités réalisées des taux 20 ans.
+- **Rationale:** Revue de la démarche demandée par l'auteur (« qu'on sente la réflexion ») : le notebook se
+  lisait comme un journal de construction. Les apports existaient mais n'apparaissaient qu'en conclusion ;
+  le §9 accumulait cinq estimateurs pour trois paramètres ; les §7-8 imprimaient des tableaux sur des
+  paramètres provisoires. Résultats nouveaux : H4 rejetée (le 2F calibré se ramène à un 1F de volatilité
+  0,85 % à 1,9 % près, car $a_x \approx a_y \approx 0$) ; vols réalisées OAT / €STR 20 ans 81,0 / 69,1 bp
+  (rapport 1,173) contre 78,0 / 66,3 bp dans le modèle (1,177). Prix et paramètres inchangés.
+- **Made by:** auteur (demande, validation du plan « go ») ; Claude Code (contenu)
+- **Supersedes:** ADR-013 sans objet comme choix d'estimateur concurrent (la GMM diagonale reste retenue,
+  la GMM efficace ne sert qu'au test J) ; à confirmer par l'auteur.
+
 ### 2026-10-03 — Options limitées à 10 ans ; courbe repo fictive linéaire jusqu'à +75 bp
 - **Decision:** (1) Échéances des options : 1, 2, 5, 7 et 10 ans (12 et 15 ans retirées). (2)
   `data/repo_fictif.csv` : +20 bp à 3 semaines, puis linéaire jusqu'à +75 bp à 10 ans (deux points, le
