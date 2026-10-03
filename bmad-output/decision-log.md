@@ -18,6 +18,31 @@ réécrire ni supprimer une entrée : la remplacer par une nouvelle entrée qui 
 
 ---
 
+### 2026-10-03 — Rédaction académique, filtre de Kalman, code appuyé sur des bibliothèques
+- **Decision:** (1) Le notebook est réécrit comme un mémoire à rendre : résumé, introduction, quatre parties
+  (données et courbes ; modèle et évaluation ; calibration et estimation ; validation et résultats),
+  conclusion, références. (2) Les contrôles de développeur sont retirés (quadratures, différences finies,
+  parités, recalages, multi-départs NSS et surface, annexe B) ; restent les validations scientifiques :
+  Jamshidian dans le cas limite à un facteur, contrôles et prix du Monte-Carlo, approximation contre prix
+  exact. (3) Nouvelle section 10 : filtre de Kalman (statsmodels `MLEModel`) sur 12 séries (swaps €STR et
+  spreads à 5-30 ans), états $(x, y)$, vitesses risque-neutres dans les chargements et historiques dans la
+  transition, taux à 20 ans supposés observés sans erreur (inversion de Chen-Scott), test sur 48 échantillons
+  simulés (joblib). (4) L'annexe A (AR(1) et inférence indirecte) est retirée : le test sur données simulées
+  du filtre traite la même question (problème de persistance). (5) ACP du spread (scikit-learn) au §9.2. (6) La
+  concordance des chiffres cités passe dans `bmad-output/reference/chiffres_cites.py`.
+- **Rationale:** Demande de l'auteur : un notebook « rédigé de façon académique et propre, comme si je pouvais
+  le rendre à mon prof », sans détail inutile ni test de développeur, qui utilise des bibliothèques (statsmodels,
+  scikit-learn) plutôt que du code maison, et qui teste le filtre de Kalman du cours de Monfort pour estimer les
+  paramètres non observés. Choix de spécification : la vraisemblance libre a plusieurs maxima, chacun annulant
+  l'erreur d'une série (optimum L-BFGS au swap 15 ans, BFGS au 20 ans) ; imposer le tenor 20 ans les supprime.
+  Les vitesses historiques restent non identifiées (écarts-types 0,16 et 0,36 ; sur données simulées, médianes
+  0,82 et 0,62 pour une vraie valeur de 0,2). La GMM reste l'estimateur retenu : le filtre la confirme
+  ($\sigma_y$ 33,1 contre 33,7 bp, $\rho$ 0,15 contre 0,13 ; call ATM +0,5 %), mais ses erreurs de mesure
+  sont autocorrélées (Ljung-Box). Durée d'exécution : ≈ 1 min 15 s.
+- **Made by:** auteur (demande) ; Claude Code (spécification et rédaction)
+- **Supersedes:** l'entrée « Restructuration du notebook » pour les annexes A et B ; l'entrée « Brigo-Mercurio
+  comme référence » pour la durée d'exécution.
+
 ### 2026-10-03 — Brigo-Mercurio comme référence du modèle ; prix exact (th. 4.2.3)
 - **Decision:** (1) Le livre de Brigo et Mercurio (2006, `doc/`) devient la référence du modèle : G2++ (4.2),
   Hull-White et Jamshidian (ch. 3), pratique de calibration (4.2.7), intensités (21-22) ; Russo et al. restent

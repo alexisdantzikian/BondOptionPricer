@@ -28,13 +28,15 @@ une option européenne sur OAT, et peut-on en identifier les paramètres avec le
 | | Hypothèse | Verdict du notebook |
 |---|---|---|
 | H1 | La courbe OAT identifie le facteur spread (procédure de Russo et al.) | rejetée (§9.1) |
-| H2 | L'historique l'identifie sous la mesure de pricing, vitesse de retour comprise | confirmée en partie : $a_y \approx 0$, $\rho$ instable, test J rejeté (§9.2-9.3) |
-| H3 | Le facteur spread renchérit sensiblement l'option | confirmée : +17 % à la monnaie ; vols réalisées cohérentes (§11) |
-| H4 | Cet effet exige deux facteurs | rejetée : un Hull-White 1F à la volatilité totale reproduit les prix à 1,9 % près (§11) |
-| H5 | L'approximation à poids gelés de Russo et al. est assez précise | confirmée à la monnaie (0,12 % du prix exact) ; rejetée en dehors : −3,0 % / +4,3 % à 1 an sur call 110 % / put 90 % (§10) |
+| H2 | L'historique l'identifie, sous la mesure de pricing comme sous la mesure historique | confirmée pour la mesure de pricing (GMM et filtre de Kalman : $a_y^Q \approx 0$, $\sigma_y$ 33,7 / 33,1 bp, $\rho$ 0,13 / 0,15), rejetée pour la mesure historique (vitesses non identifiées, problème de persistance) ; $\rho$ instable, tests J et de Ljung-Box rejetés (§9-10) |
+| H3 | Le facteur spread renchérit sensiblement l'option | confirmée : +17 % à la monnaie ; vols réalisées cohérentes (§12) |
+| H4 | Cet effet exige deux facteurs | rejetée : un Hull-White 1F à la volatilité totale reproduit les prix à 1,9 % près (§12) |
+| H5 | L'approximation à poids gelés de Russo et al. est assez précise | confirmée à la monnaie (0,12 % du prix exact) ; rejetée en dehors : −3,0 % / +4,3 % à 1 an sur call 110 % / put 90 % (§11) |
 
-Ordre du notebook : données et courbes (1-3), modèle et formule sur paramètres de test (4-7), calibration
-(8-9), validation (10), résultats et conclusion (11-12), annexes A (vitesse historique) et B (chiffres cités).
+Ordre du notebook : résumé et introduction ; I. données et courbes (1-3) ; II. modèle et évaluation (4-7) ;
+III. calibration et estimation (8 facteur taux, 9 facteur spread par GMM, 10 filtre de Kalman) ; IV. validation (11),
+résultats (12), conclusion (13) ; références. Les chiffres cités sont recalculés hors du notebook par
+`bmad-output/reference/chiffres_cites.py`.
 
 ## 2. Le contrat
 
@@ -47,8 +49,8 @@ Ordre du notebook : données et courbes (1-3), modèle et formule sur paramètre
   $F = \big[\bar B^M(0) - \sum_{T_i \le T_0} K_i P^{repo}(0,T_i)\big] / P^{repo}(0,T_0)$,
   $P^{repo} = P^M e^{-s^{repo}(T)T}$. La courbe repo (`data/repo_fictif.csv`) est **fictive**, faute de
   cotations : +20 bp à 3 semaines contre l'€STR, puis linéaire jusqu'à +75 bp à 10 ans. Les options sont
-  limitées à 10 ans pour que la courbe couvre toutes les échéances : elle n'est jamais prolongée (le code le
-  refuse, §8.2 du notebook). Le §11 mesure l'effet de son niveau (translations de −25 à +25 bp, financement
+  limitées à 10 ans pour que la courbe couvre toutes les échéances : elle n'est jamais prolongée (§7.2 du
+  notebook). La section 12 mesure l'effet de son niveau (translations de −25 à +25 bp, financement
   au taux de l'OAT). Une courbe de marché la remplacera au même format, sans modifier le code.
 - Aucune comparaison avec les résultats chiffrés du papier ni avec des options cotées.
 
@@ -86,7 +88,6 @@ $$\bar r(t) = \bar\alpha(t) + x(t) + y(t),\qquad dx = -a_x x\,dt + \sigma_x dW_x
   (objectif de Brigo et Mercurio 4.2.7 et de Russo éq. 55), sur les **prix exacts de Jamshidian** (éq. 3.44-3.46),
   meilleur de plusieurs départs : $a_x = 0{,}01067$, $\sigma_x = 0{,}7367\,\%$ (à poids gelés : 0,01051 et 0,7352 %). Les expiries 12 et 15 ans dépassent les options mais identifient $a_x$ : restreinte
   aux expiries 1 à 10 ans, la diagonale le pousse contre sa borne inférieure. Surface complète en diagnostic.
-  Contrôle Jamshidian.
 - **Facteur spread** :
   - la procédure du papier (fit de la courbe OAT, éq. 56-57) n'identifie rien : $\bar P^\ast = \bar P^M e^{-\bar V/2}$,
     elle minimise la convexité, solution exacte $\rho = -1$, $a_y = a_x$, $\sigma_y = \sigma_x$ ; Brigo et Mercurio
@@ -101,24 +102,34 @@ $$\bar r(t) = \bar\alpha(t) + x(t) + y(t),\qquad dx = -a_x x\,dt + \sigma_x dW_x
     Hansen, qui rejette le spread à un facteur. Robustesse : ajustement de la structure par terme des vols
     fenêtre par fenêtre (2021-2026, trois ans, un an) ; historiques 01/2021 → 08/09/2026 ; tenor 2 ans exclu
     (rupture du générique le 22/01/2024) ;
-  - la vitesse de retour **historique** (AR(1) du niveau du spread), qui n'entre pas dans le pricing, varie
-    avec la fenêtre par biais de petit échantillon ; sa loi est simulée sous une vitesse nulle et elle est
-    corrigée par inférence indirecte : compatible avec une vitesse nulle (annexe A) ;
-  - méthodes (GMM, biais de petit échantillon, pricing à intensité) tirées du cours de Monfort, Pegoraro et
+  - un seul facteur de spread : l'ACP des variations quotidiennes du spread (scikit-learn) donne 86 % de la
+    variance à la première composante, de chargements presque égaux ; la deuxième (pente, 8 %) reste hors modèle ;
+  - **filtre de Kalman** (section 10, cours I.2-I.3), en contrôle de la GMM : modèle espace-état des 12 séries
+    (swaps €STR et spreads aux tenors 5-30 ans, centrés), états $(x, y)$, chargements $H_{a^Q}(\tau)/\tau$,
+    dynamique historique d'Ornstein-Uhlenbeck discrétisée exactement (vitesses $a^P$), erreurs i.i.d. par série,
+    initialisation stationnaire ; statsmodels, L-BFGS. La vraisemblance libre a plusieurs maxima, selon la série
+    qu'elle ajuste exactement : les taux à 20 ans sont donc supposés observés sans erreur (inversion de
+    Chen-Scott). Résultats : $a_x^Q = 0{,}0118$ (swaptions : 0,0107), $a_y^Q$ à sa borne, $\sigma_x = 0{,}775\,\%$,
+    $\sigma_y = 0{,}331\,\%$, $\rho = 0{,}151$ ; vitesses historiques non significatives ; test sur 48 échantillons
+    simulés : paramètres risque-neutres, volatilités et $\rho$ retrouvés, vitesses historiques biaisées vers le
+    haut et très dispersées (médianes 0,82 et 0,62 pour 0,2) ; Ljung-Box rejette les erreurs i.i.d. ; avec ces
+    paramètres, le call à la monnaie change de +0,5 % ;
+  - méthodes (GMM, filtre de Kalman, inversion, problème de persistance, pricing à intensité) tirées du cours de Monfort, Pegoraro et
     Renne, *Econometrics of Commodity and Asset Pricing*, cours 5 (ENSAE 2025-2026),
     `doc/econo modele affine.pdf`.
 
 ## 6. Validation
 
-Recalage exact des courbes, dérivées par différences finies, quadratures, parités, cas limites
-($\sigma_y \to 0$ ⇒ Jamshidian pour le prix exact, Black 1F pour l'approximation), Jamshidian en 1F. Le prix exact
-2F est validé par un Monte-Carlo exact du vecteur gaussien $(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation,
-avec recentrage (écarts dans l'intervalle de confiance) ; l'erreur de l'approximation à poids gelés est ensuite
-mesurée contre le prix exact, sans bruit de simulation. Au §11, deux contrôles de la
+Le notebook ne garde que les validations scientifiques ; les contrôles de développeur (quadratures,
+différences finies, parités, multi-départs) en ont été retirés le 03/10/2026. Le prix exact coïncide avec
+Jamshidian dans le cas limite à un facteur ; il est validé par un Monte-Carlo exact du vecteur gaussien $(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation,
+avec recentrage (écarts dans l'intervalle de confiance, après trois contrôles de la simulation) ; l'erreur de l'approximation à poids gelés est ensuite
+mesurée contre le prix exact, sans bruit de simulation. Au §12, deux contrôles de la
 conclusion : un Hull-White 1F sur la courbe OAT à la volatilité totale $\sigma_{eq}$ (le modèle 2F calibré s'y
 ramène à 1,9 % près), et les volatilités réalisées des taux 20 ans (rapport OAT / €STR 1,17 contre 1,18 dans le
-modèle). L'annexe B imprime chaque chiffre de la lecture des résultats et de la conclusion, formaté comme dans
-le texte.
+modèle). Le script `bmad-output/reference/chiffres_cites.py` exécute le notebook, recalcule chaque chiffre
+du résumé, de la lecture des résultats et de la conclusion au format du texte, et signale les nombres du texte
+qui n'y figurent pas.
 
 Le recentrage $\delta$ (§7.3) est nul quand le spread repo égale le spread de l'OAT ; sinon il reporte dans la
 moyenne du prix la perte que le modèle gaussien ne contient pas (dispersion sans saut). Avec la courbe retenue,
@@ -142,7 +153,9 @@ il reste entre −3 et 33 bp.
   pondération par la duration.
 - Vols de swaptions supposées cohérentes avec l'actualisation €STR ; rendements génériques de pair utilisés
   comme taux zéro.
-- Environnement : Python 3.12 via `uv` (`pyproject.toml`, `uv.lock`).
+- Environnement : Python 3.12 via `uv` (`pyproject.toml`, `uv.lock`) ; NumPy, SciPy, pandas, matplotlib,
+  statsmodels (filtre de Kalman, maximum de vraisemblance), scikit-learn (ACP), joblib (test simulé en parallèle).
+  Exécution complète : ≈ 1 min 15 s.
 
 ## 9. Écarts de méthode par rapport à Russo et al. (et apports de Brigo et Mercurio)
 
@@ -154,7 +167,7 @@ il reste entre −3 et 33 bp.
 | $\bar\Sigma_B$ | intégration numérique | fermée sous poids gelés, poids à leur valeur forward recentrée |
 | Calibration du facteur taux | swaptions co-terminales, prix Hull-White | prix exacts de Jamshidian, diagonale de l'OAT (recommandation de Brigo et Mercurio 4.2.7) |
 | Lien avec le crédit | spread issu d'une intensité de défaut et d'une perte | spread modélisé directement, justifié par le recouvrement en valeur de marché (seul le produit perte × intensité est identifié) |
-| Calibration du spread | fit de la courbe risquée | GMM sur la structure par terme des vols et les corrélations historiques du spread, pondération diagonale, test J |
-| Vitesse de retour historique | — | biais de petit échantillon mesuré par simulation, corrigé par inférence indirecte (annexe A) |
+| Calibration du spread | fit de la courbe risquée | GMM sur la structure par terme des vols et les corrélations historiques du spread, pondération diagonale, test J ; contrôle par maximum de vraisemblance avec filtre de Kalman |
+| Vitesse de retour historique | — | estimée par filtre de Kalman avec la dynamique risque-neutre ; non identifiée sur six ans (test sur données simulées) |
 | Nécessité du second facteur | — | testée : avec les paramètres estimés, un 1F à la volatilité totale suffit à 1,9 % près |
 | Validation | Monte-Carlo | prix exact validé par Monte-Carlo exact ; erreur de l'approximation mesurée contre le prix exact, par strike et par échéance |

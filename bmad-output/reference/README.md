@@ -39,3 +39,17 @@ diff bmad-output/reference/sorties_reference.txt <scratchpad>/sorties.txt
 ```
 
 Le repère d'une cellule ne dépend pas de son indice : une cellule insérée apparaît comme un bloc ajouté.
+
+## Concordance des chiffres cités (depuis le 03/10/2026)
+
+L'ancienne annexe B du notebook (cellule `CHIFFRES`) est devenue `chiffres_cites.py` : le script exécute toutes
+les cellules du notebook, recalcule chaque chiffre cité dans le résumé, la lecture des résultats et la
+conclusion au format du texte, puis liste les nombres de ces textes absents de la liste (seuls des nombres
+structurels doivent y rester : années, strikes, numéros de section).
+
+```bash
+uv run python bmad-output/reference/chiffres_cites.py
+```
+
+Les sorties de référence ci-dessus (`sorties_reference.txt`, story 6.1) datent d'avant la réécriture et ne
+servent plus de point de comparaison.
