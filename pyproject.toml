@@ -14,4 +14,6 @@ dependencies = [
     "nbconvert",
     "ipykernel",
     "scipy-stubs~=1.18.1",
+    "statsmodels>=0.15.0",
+    "scikit-learn>=1.9.1",
 ]
