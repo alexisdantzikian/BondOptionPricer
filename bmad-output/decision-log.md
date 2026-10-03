@@ -18,6 +18,27 @@ réécrire ni supprimer une entrée : la remplacer par une nouvelle entrée qui 
 
 ---
 
+### 2026-10-03 — Brigo-Mercurio comme référence du modèle ; prix exact (th. 4.2.3)
+- **Decision:** (1) Le livre de Brigo et Mercurio (2006, `doc/`) devient la référence du modèle : G2++ (4.2),
+  Hull-White et Jamshidian (ch. 3), pratique de calibration (4.2.7), intensités (21-22) ; Russo et al. restent
+  cités pour la lecture crédit du second facteur, l'approximation à poids gelés et la calibration en deux
+  étapes. (2) Le prix de l'option est le prix exact du théorème 4.2.3, adapté (deux courbes, mesure forward
+  €STR, recentrage ; intégration sur y, espérance fermée en x) ; l'approximation à poids gelés devient
+  `price_gele`, comparée au prix exact au §10. (3) Le facteur taux est calibré sur les prix exacts de
+  Jamshidian, meilleur de plusieurs départs : $a_x = 0{,}01067$, $\sigma_x = 0{,}7367\,\%$.
+- **Rationale:** Demande de l'auteur après lecture du livre (« le papier de Russo ne fait que reprendre ce
+  livre ») : les équations 12 à 24 de Russo sont celles du G2++, et Russo ne cite le livre qu'en note. Le livre
+  donne un prix exact là où Russo approche ; l'écart est de 0,12 % au plus à la monnaie mais atteint −3,0 % (call
+  110 %) et +4,3 % (put 90 %) à 1 an. Le prix exact égale Jamshidian en un facteur à 1e-8 et le Monte-Carlo dans
+  son intervalle de confiance. Le livre confirme la calibration retenue : diagonale pertinente (4.2.7),
+  corrélation historique et non-identification par la courbe (22.7.2). Avec les prix exacts, un départ éloigné
+  arrête L-BFGS-B avant l'optimum (objectif 0,0590 contre 0,0498), d'où le multi-départ. Durée d'exécution :
+  ≈ 2 min 30 s (Jamshidian sur la surface).
+- **Made by:** auteur (choix du livre comme référence, points 1 à 3) ; Claude Code (adaptation de la formule,
+  multi-départ)
+- **Supersedes:** l'entrée « Restructuration du notebook » pour la formulation de H5 (désormais :
+  l'approximation de Russo et al. suffit-elle ?).
+
 ### 2026-10-03 — Restructuration du notebook autour d'une question de recherche
 - **Decision:** (1) Introduction : problématique et cinq hypothèses H1-H5 (test, section) ; la conclusion
   rend un verdict sur chacune. (2) Ordre : modèle et formule (sections 6-7, sur paramètres de test) avant la

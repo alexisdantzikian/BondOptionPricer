@@ -9,17 +9,17 @@ décisions) est dans `bmad-output/`.
 
 | # | Section | État |
 |---|---|---|
-| — | Introduction : problématique, hypothèses H1-H5, contrat, plan | fait |
+| — | Introduction : problématique, G2++ de Brigo-Mercurio et lecture de Russo et al., sources, hypothèses H1-H5, contrat, plan | fait |
 | 1 | Données de marché, courbe repo fictive linéaire (+20 bp à 3 semaines → +75 bp à 10 ans), historiques coupés au 08/09/2026 | fait |
 | 2 | Courbe €STR (bootstrap, spline sur log P) | fait |
 | 3 | Courbe OAT (NSS, multi-départ), sous-jacent OAT 2046, coupon couru à une date future | fait |
 | 4 | Briques gaussiennes | fait |
 | 5 | Hull-White 1F, options sur obligation, Jamshidian, swaptions | fait |
 | 6 | Modèle à deux facteurs ; $\bar r = r + y$ justifié par le recouvrement en valeur de marché (paramètres de test) | fait |
-| 7 | Option vanille (échéances 1 à 10 ans) : forward repo sur une courbe qui couvre toutes les échéances, sans extrapolation (7.2), recentrage et sa lecture économique (7.3), strike clean, formule fermée (paramètres de test) | fait |
-| 8 | Facteur taux : diagonale co-terminale 20 ans (tenors interpolés), expiries 1 à 15 ans nécessaires à l'identification de $a_x$ | fait |
+| 7 | Option vanille (échéances 1 à 10 ans) : forward repo sur une courbe qui couvre toutes les échéances, sans extrapolation (7.2), recentrage et sa lecture économique (7.3), prix exact de Brigo-Mercurio (7.4), approximation à poids gelés de Russo et al. (7.5), strike clean (paramètres de test) | fait |
+| 8 | Facteur taux : prix exacts de Jamshidian, diagonale co-terminale 20 ans (tenors interpolés), expiries 1 à 15 ans nécessaires à l'identification de $a_x$, meilleur de plusieurs départs | fait |
 | 9 | Facteur spread : non-identification par la courbe (9.1), moments historiques et robustesse par fenêtre (9.2), GMM à pondération diagonale et test J (9.3) | fait |
-| 10 | Monte-Carlo exact recentré | fait |
+| 10 | Validation : prix exact contre Monte-Carlo exact recentré, erreur de l'approximation à poids gelés contre le prix exact | fait |
 | 11 | Résultats par hypothèse : effet du spread (H3), équivalent à un facteur (H4), contrôle par les vols réalisées, sensibilités ; lecture des résultats | fait |
 | 12 | Conclusion : verdict sur H1-H5, limites, perspectives | fait |
 | A | Annexe : vitesse de retour historique du spread (biais de petit échantillon, inférence indirecte) | fait |
