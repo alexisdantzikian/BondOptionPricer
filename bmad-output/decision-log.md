@@ -18,6 +18,23 @@ réécrire ni supprimer une entrée : la remplacer par une nouvelle entrée qui 
 
 ---
 
+### 2026-10-03 — Options limitées à 10 ans ; courbe repo fictive linéaire jusqu'à +75 bp
+- **Decision:** (1) Échéances des options : 1, 2, 5, 7 et 10 ans (12 et 15 ans retirées). (2)
+  `data/repo_fictif.csv` : +20 bp à 3 semaines, puis linéaire jusqu'à +75 bp à 10 ans (deux points, le
+  notebook interpole linéairement). (3) La courbe n'est jamais prolongée : `FINANCEMENT_LONG` est supprimé et
+  `repo_curve.s` refuse un tenor au-delà du dernier coté. (4) Calibration du facteur taux inchangée
+  (diagonale 20 ans, expiries 1 à 15 ans) : restreinte aux expiries 1 à 10 ans, l'objectif décroît jusqu'à
+  la borne $a_x = 0{,}001$ ($a_x$ non identifié). Le §6 l'imprime désormais.
+- **Rationale:** Auteur : +6 bp à long terme est trop faible. Limiter les options à 10 ans supprime toute
+  extrapolation du financement, qui dominait les prix à 12-15 ans (call ATM 15 ans de 1,2 à 13,4 selon le
+  financement). Effets : recentrage $\delta$ de −3 à 33 bp (580 bp à 15 ans auparavant) ; call ATM 10 ans
+  de 5,0, de 3,9 à 6,2 pour une translation de ±25 bp de la courbe. Le point (4) évite un $a_x$ qui dépend
+  du point de départ (0,0042 ou 0,001) sur un objectif presque plat.
+- **Made by:** auteur (échéances, niveaux de la courbe) ; Claude Code (courbe en deux points, suppression de
+  la règle longue, maintien de la diagonale 1-15 ans)
+- **Supersedes:** l'entrée « Courbe repo fictive à structure par terme ; Q1 « plat » ; dépôt public » pour
+  ses points (1) et (2) ; l'entrée « Décisions antérieures à BMAD » pour les échéances.
+
 ### 2026-10-01 — Courbe repo fictive à structure par terme ; Q1 « plat » ; dépôt public
 - **Decision:** (1) Pas de courbe repo de marché disponible : `data/repo_fictif.csv` reçoit une courbe
   **fictive** à structure par terme, cotée de 1 semaine à 1 an (+2, +3, +4, +5, +5,5, +6 bp contre

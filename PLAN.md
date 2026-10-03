@@ -8,14 +8,14 @@ La planification détaillée (PRD, architecture, stories, registre des décision
 
 | # | Section | État |
 |---|---|---|
-| 1 | Données de marché, courbe repo fictive à structure par terme (1 semaine → 1 an), règle de financement long terme, historiques coupés au 08/09/2026 | fait |
+| 1 | Données de marché, courbe repo fictive linéaire (+20 bp à 3 semaines → +75 bp à 10 ans), historiques coupés au 08/09/2026 | fait |
 | 2 | Courbe €STR (bootstrap, spline sur log P) | fait |
 | 3 | Courbe OAT (NSS, multi-départ), sous-jacent OAT 2046, coupon couru à une date future | fait |
 | 4 | Briques gaussiennes | fait |
 | 5 | Hull-White 1F, options sur obligation, Jamshidian, swaptions | fait |
-| 6 | Facteur taux : diagonale co-terminale 20 ans (tenors interpolés) | fait |
+| 6 | Facteur taux : diagonale co-terminale 20 ans (tenors interpolés), expiries 1 à 15 ans nécessaires à l'identification de $a_x$ | fait |
 | 7 | Modèle à deux facteurs ; $\bar r = r + y$ justifié par le recouvrement en valeur de marché | fait |
-| 8 | Option vanille : forward repo, hypothèse de financement au-delà du dernier tenor coté (8.2), recentrage, strike clean, formule fermée | fait |
+| 8 | Option vanille (échéances 1 à 10 ans) : forward repo sur une courbe qui couvre toutes les échéances, sans extrapolation (8.2), recentrage, strike clean, formule fermée | fait |
 | 9 | Facteur spread : non-identification par la courbe (9.1), moments historiques (9.2), GMM à pondération diagonale et test J (9.3), biais de la vitesse historique (9.4) | fait |
 | 10 | Monte-Carlo exact recentré | fait |
 | 11 | Résultats et sensibilités (repo en translations, sigma_y, rho, a_y), cellule « Chiffres cités », lecture des résultats | fait |

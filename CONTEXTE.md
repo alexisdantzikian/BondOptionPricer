@@ -20,17 +20,16 @@ Nature du livrable : mémoire de recherche. Chaque étape est justifiée, vérif
 
 - **Option vanille collatéralisée** (€STR), telle qu'elle se traite en banque d'investissement : call / put
   européen sur l'OAT, actualisé au taux €STR.
-- **Sous-jacent** : OAT 4,10 % 25/05/2046 (FR0014015MU5). **Échéances** : 1, 2, 5, 7, 10, 12 et 15 ans.
+- **Sous-jacent** : OAT 4,10 % 25/05/2046 (FR0014015MU5). **Échéances** : 1, 2, 5, 7 et 10 ans.
 - **Strike clean**, exprimé en % du **forward clean** (à la monnaie = forward clean). En interne, strike dirty
   $X = K + CC(T_0)$, le coupon couru à l'échéance étant connu.
 - **Forward repo** : cash-and-carry au taux €STR + spread repo,
   $F = \big[\bar B^M(0) - \sum_{T_i \le T_0} K_i P^{repo}(0,T_i)\big] / P^{repo}(0,T_0)$,
   $P^{repo} = P^M e^{-s^{repo}(T)T}$. La courbe repo (`data/repo_fictif.csv`) est **fictive**, faute de
-  cotations : de +2 bp à 1 semaine à +6 bp à 1 an contre l'€STR, cotée jusqu'à 1 an comme un marché de repo à
-  terme. Au-delà, le repo n'est pas liquide : le spread est maintenu au niveau du dernier tenor coté
-  (`FINANCEMENT_LONG = "plat"`, §8.2 du notebook), hypothèse dont le §11 mesure l'effet (translations de
-  −25 à +25 bp, financement au taux de l'OAT). Une courbe de marché la remplacera au même format, sans
-  modifier le code.
+  cotations : +20 bp à 3 semaines contre l'€STR, puis linéaire jusqu'à +75 bp à 10 ans. Les options sont
+  limitées à 10 ans pour que la courbe couvre toutes les échéances : elle n'est jamais prolongée (le code le
+  refuse, §8.2 du notebook). Le §11 mesure l'effet de son niveau (translations de −25 à +25 bp, financement
+  au taux de l'OAT). Une courbe de marché la remplacera au même format, sans modifier le code.
 - Aucune comparaison avec les résultats chiffrés du papier ni avec des options cotées.
 
 ## 3. Le modèle
@@ -59,7 +58,9 @@ $$\bar r(t) = \bar\alpha(t) + x(t) + y(t),\qquad dx = -a_x x\,dt + \sigma_x dW_x
 
 - **Facteur taux** : $(a_x,\sigma_x)$ conjointement sur la diagonale co-terminale 20 ans (maturité du
   sous-jacent) des swaptions ATM, expiries 1 à 15 ans, tenors non cotés interpolés linéairement en vol normale
-  (objectif Russo éq. 55). Surface complète en diagnostic. Contrôle Jamshidian.
+  (objectif Russo éq. 55). Les expiries 12 et 15 ans dépassent les options mais identifient $a_x$ : restreinte
+  aux expiries 1 à 10 ans, la diagonale le pousse contre sa borne inférieure. Surface complète en diagnostic.
+  Contrôle Jamshidian.
 - **Facteur spread** :
   - la procédure du papier (fit de la courbe OAT, éq. 56-57) n'identifie rien : $\bar P^\ast = \bar P^M e^{-\bar V/2}$,
     elle minimise la convexité, solution exacte $\rho = -1$, $a_y = a_x$, $\sigma_y = \sigma_x$ ;
@@ -95,7 +96,7 @@ $(x(T_0), y(T_0), \int x, \int y)$ sans discrétisation, avec recentrage. La cel
 | — `Swaption cube` | vols normales ATM EUR, 21 expiries × 14 tenors |
 | — `Liste OAT` | 19 titres (5 zéro-coupons courts, 14 OAT 2028 → 2072) |
 | — `Zield Histo OAT`, `Yield Histo ESTR` | historiques quotidiens 2, 5, 10, 15, 20, 25, 30 ans depuis 01/2021 |
-| `data/repo_fictif.csv` | spread repo contre €STR, tenors 1 semaine → 1 an, **fictif** (structure par terme inventée) |
+| `data/repo_fictif.csv` | spread repo contre €STR, **fictif** : +20 bp à 3 semaines, linéaire jusqu'à +75 bp à 10 ans |
 
 ## 8. Conventions et simplifications
 
