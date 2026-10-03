@@ -1,12 +1,9 @@
 # COURBE REPO FICTIVE — à remplacer par une courbe de marché au même format (aucun code à modifier).
 # Spread du taux repo de l'OAT contre le taux zéro €STR de même maturité (taux zéro continus), en points de base.
-# Ordre de grandeur plausible, mais inventé : quelques bp au-dessus de l'€STR, croissant avec la durée du financement.
-# Cotée jusqu'à 1 an seulement, comme un marché de repo à terme ; au-delà, hypothèse de financement du notebook (§8.2).
+# Inventée : +20 bp à 3 semaines, puis linéaire en la durée du financement jusqu'à +75 bp à 10 ans
+# (le notebook interpole linéairement entre les tenors : les deux extrémités suffisent).
+# Cotée jusqu'à 10 ans, la plus longue échéance d'option : le notebook ne la prolonge jamais au-delà.
 # Tenors en semaines (W), mois (M) ou années (Y) uniquement.
 Tenor,Spread_bp
-1W,2
-1M,3
-3M,4
-6M,5
-9M,5.5
-1Y,6
+3W,20
+10Y,75
