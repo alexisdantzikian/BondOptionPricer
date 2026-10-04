@@ -148,6 +148,27 @@ CHIFFRES.update({
     "demi-vie d'une vitesse de 0,2 (ans)": _fr(np.log(2) / 0.2, 1),
 })
 
+# --- vitesse de retour des taux imposée, H4 hors de la monnaie, diagonale repricée avec le filtre de Kalman (§12)
+_ax = T_AX.div(T_AX.loc[[l for l in T_AX.index if "retenu" in l][0]], axis=1) - 1     # call ATM / retenu - 1, par a_x et échéance
+_ax.index = AX["a_x"].values
+_res_ax = AX.set_index("a_x")["résidu max de la diagonale (bp)"]
+_h4 = H4_HORS.set_index("T0")
+CHIFFRES.update({
+    "a_x retenu, trois décimales": _fr(A_X, 3),
+    "résidu max de la diagonale à a_x = 0,05 (bp)": _fr(_res_ax[0.05], 1),
+    "call ATM, écart maximal pour a_x de 0,001 à 0,05, majorant": _fr(math.ceil(_ax.loc[_ax.index <= 0.05].abs().max().max() * 100), 0, unite="%"),
+    "résidu max de la diagonale à a_x = 0,2 (bp)": _fr(_res_ax[0.2], 0),
+    "call ATM 1 an à a_x = 0,2 / retenu - 1": _fr(_ax.loc[0.2, _T1] * 100, 0, unite="%"),
+    f"1F à sigma_eq, plus grand écart de 90 à 110 % à 1 an ({_h4.loc[1.0, 'option']})": _fr(_h4.loc[1.0, "écart max, sigma_eq (%)"], 1, unite="%"),
+    "volatilité du 1F ajustée sur le call ATM": _plage(_h4["sigma ajustée (%)"], 2, unite="%"),
+    "1F à volatilité ajustée, plus grand écart de 90 à 110 %": _fr(_h4["écart max, sigma ajustée (%)"].abs().max(), 2, unite="%"),
+    "Kalman : sigma_x": _fr(KAL.params[4], 2, unite="%"),
+    "diagonale repricée avec le filtre de Kalman : écart moyen (bp)": _fr(ECART_KAL.mean(), 1),
+    "sigma^Q / sigma^P du facteur taux": _fr(KAPPA, 2),
+    "sigma^P - sigma^Q, en écarts-types du filtre": _fr((s_k - s_q) / se_k, 1),
+    "baisse du call ATM si sigma_y x sigma^Q / sigma^P": _plage(-C_KAPPA * 100, 0, unite="%"),
+})
+
 print("chiffres cités (valeurs formatées comme dans le texte) :")
 for _lib, _val in CHIFFRES.items():
     print(f"  {_lib:<72} {_val}")
