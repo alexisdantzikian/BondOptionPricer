@@ -21,8 +21,8 @@ terme croisé $V_{xy}$. Les écarts-types et la corrélation de $(x(T_0), y(T_0)
 exact~\eqref{eq:prix_exact} sont $s_x^2 = \Var x(T_0)$, $s_y^2 = \Var y(T_0)$ et
 $r_{xy} = \Cov(x(T_0), y(T_0))/(s_xs_y)$, calculés en $t = 0$.
 
-\paragraph{Moyennes sous la mesure forward.} D'après~\eqref{eq:zc_hw}, le numéraire $P(u,T_0)$ a pour
-volatilité $-\sigma_x H_{a_x}(u,T_0)$, portée par le seul brownien $W_x$. Le changement de numéraire donne
+\paragraph{Moyennes sous la mesure forward.} Le numéraire $P(u,T_0)$ ne dépend que du brownien $W_x$ ;
+d'après~\eqref{eq:zc_hw}, sa volatilité est $-\sigma_x H_{a_x}(u,T_0)$. Le changement de numéraire donne
 \begin{equation}
 \dd W_x^{T_0} = \dd W_x + \sigma_x H_{a_x}(u,T_0)\,\dd u,\qquad
 \dd W_y^{T_0} = \dd W_y + \rho\,\sigma_x H_{a_x}(u,T_0)\,\dd u.
@@ -49,18 +49,18 @@ clean en \% du forward clean)}
 Strike & 1 an & 2 ans & 5 ans & 7 ans & 10 ans \\
 \midrule
 \multicolumn{6}{@{}l}{\emph{Calls}} \\
-90~\%  & 9,434 & 9,837 & 9,961 & 9,514 & 8,442 \\
-95~\%  & 6,099 & 6,951 & 7,660 & 7,421 & 6,539 \\
-100~\% & 3,578 & 4,677 & 5,763 & 5,679 & 4,960 \\
-105~\% & 1,899 & 3,000 & 4,248 & 4,271 & 3,689 \\
-110~\% & 0,914 & 1,840 & 3,073 & 3,161 & 2,695 \\
+90~\%  & 9,4339 & 9,8370 & 9,9609 & 9,5143 & 8,4422 \\
+95~\%  & 6,0994 & 6,9513 & 7,6600 & 7,4206 & 6,5387 \\
+100~\% & 3,5781 & 4,6770 & 5,7627 & 5,6794 & 4,9598 \\
+105~\% & 1,8988 & 3,0003 & 4,2476 & 4,2712 & 3,6891 \\
+110~\% & 0,9138 & 1,8400 & 3,0727 & 3,1610 & 2,6947 \\
 \midrule
 \multicolumn{6}{@{}l}{\emph{Puts}} \\
-90~\%  & 0,641 & 1,398 & 2,475 & 2,577 & 2,206 \\
-95~\%  & 1,703 & 2,732 & 3,917 & 3,952 & 3,421 \\
-100~\% & 3,578 & 4,677 & 5,763 & 5,679 & 4,960 \\
-105~\% & 6,296 & 7,220 & 7,990 & 7,740 & 6,807 \\
-110~\% & 9,707 & 10,279 & 10,558 & 10,099 & 8,931 \\
+90~\%  & 0,6407 & 1,3984 & 2,4752 & 2,5765 & 2,2062 \\
+95~\%  & 1,7028 & 2,7319 & 3,9172 & 3,9517 & 3,4208 \\
+100~\% & 3,5781 & 4,6770 & 5,7627 & 5,6794 & 4,9598 \\
+105~\% & 6,2955 & 7,2196 & 7,9904 & 7,7401 & 6,8071 \\
+110~\% & 9,7070 & 10,2787 & 10,5584 & 10,0989 & 8,9307 \\
 \midrule
 \multicolumn{6}{@{}l}{\emph{Forward et espérance du modèle (prix dirty)}} \\
 $F$ (repo) & 91,573 & 90,525 & 87,908 & 86,809 & 86,445 \\

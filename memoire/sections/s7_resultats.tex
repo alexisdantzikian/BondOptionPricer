@@ -17,9 +17,9 @@ fermée~\eqref{eq:zc_oat}, le facteur spread étant décalé du recentrage $\del
 trajectoires avec variables antithétiques.
 
 Trois contrôles précèdent le pricing, à cinq ans. La moyenne simulée de $e^{-\int r}$ vaut 0,863309, pour
-$P^M(0,5) = 0{,}863309$ ; celle de $e^{-\int \bar r}$ vaut 0,839610, pour $\bar P^M(0,5) = 0{,}839609$, ce qui
-teste le recalage de la courbe OAT et toute la matrice de covariance ; enfin le forward simulé vaut 87,903, pour
-un forward repo de 87,908, ce qui teste la loi forward et le recentrage. Dans le cas limite à un facteur
+$P^M(0,5) = 0{,}863309$. Celle de $e^{-\int \bar r}$ vaut 0,839610, pour $\bar P^M(0,5) = 0{,}839609$, ce qui
+teste le recalage de la courbe OAT et toute la matrice de covariance. Enfin, le forward simulé vaut 87,903, pour
+un forward repo de 87,908 : la loi forward et le recentrage sont corrects. Dans le cas limite à un facteur
 ($\sigma_y = 0$, courbe OAT confondue avec la courbe €STR), le prix exact du call à la monnaie à cinq ans,
 6,254832, est égal à celui de Jamshidian à la sixième décimale.
 
@@ -223,7 +223,7 @@ Estimation du spread & filtre de Kalman & $+0{,}5$ & $+0{,}5$ & $+0{,}5$ & $+0{,
 La corrélation est le paramètre le moins bien connu : sa fourchette historique, de 0,06 à 0,43, est bien plus
 large que l'incertitude statistique de l'estimation, et le call y varie de $-2\,\%$ à $+10\,\%$. La vitesse de
 retour du spread, à volatilité du spread à vingt ans inchangée puisque c'est elle que l'on observe, change le prix
-de moins de 5~\% jusqu'à 0,215, la vitesse historique estimée par le filtre de Kalman ; seul un retour rapide, que
+de moins de 5~\% jusqu'à 0,215, la vitesse historique estimée par le filtre de Kalman. Seul un retour rapide, que
 la structure par terme des volatilités exclut, le réduirait d'environ 10~\% aux longues échéances. Passer des
 paramètres de la GMM à ceux du filtre ne change le call que de 0,5~\%.
 

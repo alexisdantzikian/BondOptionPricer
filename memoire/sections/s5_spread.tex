@@ -1,7 +1,7 @@
 \section{Estimation du facteur spread}
 \label{sec:spread}
 
-Il n'existe pas de marché liquide d'options sur OAT d'où tirer la volatilité du spread. Il faut donc une autre
+Il n'existe pas de marché liquide d'options sur OAT d'où tirer la volatilité du spread. Il faut une autre
 source d'information, et vérifier qu'elle identifie les paramètres $(a_y, \sigma_y, \rho)$. Le spread OAT–€STR
 mêle crédit, liquidité et effets d'offre de titres et de collatéral (rareté des titres d'État remis en garantie,
 programme d'émission du Trésor). \citet{MonfortRenne2014} identifient la liquidité par l'écart entre les titres
@@ -21,7 +21,7 @@ plus faible erreur. Or le recalage~\eqref{eq:recalage} impose
 \end{equation}
 L'erreur à minimiser est donc $\big|e^{-\frac12\bar V(0,T)} - 1\big|$ : la procédure minimise la convexité
 totale $\bar V = V_x + V_y + V_{xy}$ de la courbe OAT, et non un écart au marché. $V_x$ étant fixé par le facteur
-taux, l'optimum pousse le terme croisé à compenser $V_x$, donc vers $\rho < 0$ et vers des $(a_y,\sigma_y)$ qui
+taux, l'optimum pousse le terme croisé à compenser $V_x$, vers $\rho < 0$ et vers des $(a_y,\sigma_y)$ qui
 rendent $V_y + V_{xy}$ aussi négatif que possible. La solution exacte est $\rho = -1$, $a_y = a_x$,
 $\sigma_y = \sigma_x$ : le facteur spread annule alors le facteur taux ($x + y \equiv 0$), le taux OAT devient
 déterministe et $\bar V \equiv 0$. Le tableau~\ref{tab:h1} le vérifie numériquement.
@@ -112,8 +112,8 @@ selon le tenor et la fenêtre, et cette fourchette servira de sensibilité.
 
 Le modèle ne comporte qu'un facteur de spread. L'analyse en composantes principales des variations quotidiennes
 du spread aux tenors 5 à 30 ans attribue 85,8~\% de leur variance à la première composante, dont les chargements
-sont presque égaux d'un tenor à l'autre (de 0,36 à 0,43) : le spread se déplace surtout en bloc, ce que décrit un
-facteur unique à vitesse de retour faible. La deuxième composante, une pente qui explique 8,4~\% de la variance,
+sont presque égaux d'un tenor à l'autre (de 0,36 à 0,43). Le spread se déplace surtout en bloc, ce que décrit
+un facteur unique à vitesse de retour faible. La deuxième composante, une pente qui explique 8,4~\% de la variance,
 reste hors du modèle.
 
 \begin{figure}[htbp]

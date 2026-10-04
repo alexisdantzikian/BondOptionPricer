@@ -66,7 +66,7 @@ def etiquette_maturite(lab):
         v = float(lab.replace("\u2212", "-").replace(",", "."))
     except ValueError:
         return lab
-    return f"{round(v * 12)} m" if v < 1 else f"{v:g}"
+    return f"{round(v * 12)} m" if v < 1 else f"{v:g}".replace(".", ",")
 
 
 def mettre_en_forme(fig):
