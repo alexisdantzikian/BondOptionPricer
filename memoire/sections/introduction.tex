@@ -1,0 +1,105 @@
+\section*{Introduction}
+\addcontentsline{toc}{section}{Introduction}
+
+\subsection*{Cadre du stage}
+
+Le stage s'est déroulé chez \acompleter{nom de l'entreprise}, au sein de \acompleter{équipe ou desk}, du
+\acompleter{dates du stage}, sous la responsabilité de \acompleter{Prénom NOM, fonction}.
+\acompleter{missions confiées pendant le stage, en deux ou trois phrases}.
+
+Le présent rapport porte sur l'évaluation d'options européennes sur obligations d'État françaises (OAT). Le
+contrat étudié suit les conventions de marché de la banque d'accueil : une option vanille, collatéralisée et
+actualisée au taux €STR, dont le prix à terme est fixé par le financement du titre en pension livrée (repo). Les
+données de marché proviennent de Bloomberg (clôture du 8 septembre 2026). Les calculs sont programmés en
+Python, avec les bibliothèques NumPy, SciPy et pandas pour l'analyse numérique, statsmodels pour le filtre de
+Kalman, le modèle à changement de régime et les tests statistiques, et scikit-learn pour l'analyse en
+composantes principales. L'annexe~D décrit l'environnement de calcul.
+
+\subsection*{Problématique}
+
+Le rendement d'une OAT n'est pas le taux sans risque. Il s'en écarte d'un spread contre l'€STR qui rémunère le
+risque de crédit de l'État, la liquidité du titre et des effets d'offre, et ce spread fluctue en partie
+indépendamment des taux. Un pricer d'options sur obligations calibré sur les seules swaptions €STR ignore cette
+source de volatilité. Or il n'existe pas de marché liquide d'options sur OAT d'où l'on pourrait la tirer : la
+volatilité du spread doit être mesurée ailleurs, et il faut vérifier que les données disponibles le permettent.
+Le mémoire pose donc la question suivante :
+
+\begin{center}
+\begin{minipage}{0.88\textwidth}
+\itshape Faut-il modéliser le spread OAT–€STR comme un facteur de risque à part pour évaluer une option
+européenne sur OAT, et peut-on en identifier les paramètres avec les données disponibles ?
+\end{minipage}
+\end{center}
+
+\subsection*{Littérature et positionnement}
+
+Le cadre retenu est le modèle gaussien à deux facteurs additifs, dit G2++, de \citet{BrigoMercurio2006}
+(section~4.2), qui étend le modèle de \citet{HullWhite1990}. Le modèle recale exactement la courbe initiale, et
+une option sur obligation à coupons y a un prix exact sous forme d'intégrale à une dimension (théorème~4.2.3).
+À un facteur, la décomposition de \citet{Jamshidian1989} ramène cette option à une somme d'options sur
+zéro-coupons. \citet{Russo} lisent le second facteur du G2++ comme un spread de crédit : le premier facteur
+décrit le taux sans risque, le second l'écart entre la courbe risquée et la courbe sans risque. Ils remplacent
+le prix exact par une formule fermée approchée, sous une hypothèse lognormale à «~poids gelés~», et proposent de
+calibrer le facteur spread sur la seule courbe risquée.
+
+Cette forme du taux d'actualisation se justifie dans les modèles de crédit à intensité
+\citep{DuffieSingleton1999}, et \citet{MonfortRenne2014} l'appliquent aux souverains de la zone euro en séparant
+crédit et liquidité ; seul le spread total entre toutefois dans le prix d'une option sur OAT.
+
+Le travail reprend le modèle de \citet{Russo} sur des données françaises, avec trois différences. Le contrat
+est celui qui se traite en banque, avec un forward fixé par le repo et non par le modèle. Le prix est calculé
+exactement, à partir du théorème~4.2.3 de \citet{BrigoMercurio2006} adapté à deux courbes, et l'approximation à
+poids gelés est mesurée contre lui. Enfin, l'identification des paramètres du spread est testée avant leur
+estimation : la procédure de calibration du papier se révèle non identifiante, et l'estimation se fait sur les
+séries historiques.
+
+\subsection*{Hypothèses testées}
+
+La question se décompose en cinq hypothèses, résumées au tableau~\ref{tab:hypotheses} ; la conclusion dit
+pour chacune si elle est confirmée.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Hypothèses du mémoire et tests associés}
+\label{tab:hypotheses}
+\begin{tabularx}{\textwidth}{@{}l X X c@{}}
+\toprule
+ & Hypothèse & Test & Section \\
+\midrule
+H1 & La courbe OAT identifie les paramètres du facteur spread (procédure de Russo et al.) & forme de l'objectif de calibration & 5.1 \\
+H2 & Les séries historiques identifient ces paramètres, sous la mesure de pricing comme sous la mesure historique & méthode des moments généralisée, régimes, filtre de Kalman, données simulées & 5, 6 \\
+H3 & Le facteur spread renchérit sensiblement l'option par rapport au seul facteur taux & prix à la monnaie, décomposition de la variance, volatilités réalisées & 7.2 \\
+H4 & Cet effet exige deux facteurs, et pas seulement une volatilité plus forte & comparaison à un Hull-White à un facteur équivalent & 7.3 \\
+H5 & L'approximation à poids gelés de Russo et al. suffit pour le pricing & comparaison au prix exact, validé par Monte-Carlo & 7.1 \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection*{Enseignements de l'ENSAE mobilisés}
+
+Trois cours de l'ENSAE fondent les choix du mémoire. Le pricing de taux s'appuie sur le cours de
+\citet{Chaix2021} (actualisation au taux du collatéral, mesure forward, volatilité normale des swaptions,
+Hull-White à un facteur et sa calibration sur une diagonale de swaptions) et sur celui de \citet{Hillairet2026}
+(construction de la courbe, modèles de taux court à shift déterministe, probabilité forward, décomposition de
+Jamshidian). L'estimation s'appuie sur le cours de \citet{MPR2025} : modèles affines gaussiens et changement de
+mesure (cours~1 et~3), relation forward d'un actif stockable (cours~2), régimes de Markov (cours~4), méthode des
+moments généralisée, filtre de Kalman, problème de persistance et pricing des risques de crédit et de liquidité
+(cours~5). Les renvois précis, au chapitre ou à la page, figurent dans le texte.
+
+\subsection*{Part du travail personnel}
+
+\acompleter{rôle du maître de stage et de l'équipe : choix du sujet, données fournies, conventions de marché,
+relectures ; part personnelle de l'élève dans la modélisation, la programmation et l'analyse}. La courbe de
+repo, faute de cotations accessibles, est fictive et signalée comme telle à chaque usage ; la section~7 mesure
+l'effet de son niveau sur les prix.
+
+\subsection*{Plan}
+
+La section~1 présente les données et construit les deux courbes, €STR et OAT. La section~2 expose le modèle à
+deux facteurs et justifie la lecture du second facteur comme un spread. La section~3 définit le contrat, le
+forward repo et le recentrage du modèle sur ce forward, puis établit le prix exact et l'approximation à poids
+gelés. Les sections~4 à~6 traitent de la calibration : le facteur taux sur les swaptions, puis le facteur
+spread, dont on montre d'abord que la courbe OAT ne l'identifie pas, avant de l'estimer par la méthode des
+moments généralisée et par maximum de vraisemblance avec filtre de Kalman. La section~7 valide le prix exact et
+présente les résultats, hypothèse par hypothèse. La conclusion reprend les réponses, les limites et les
+prolongements possibles.

@@ -1,0 +1,241 @@
+\section{Estimation du facteur spread}
+\label{sec:spread}
+
+Il n'existe pas de marché liquide d'options sur OAT d'où tirer la volatilité du spread. Il faut donc une autre
+source d'information, et vérifier qu'elle identifie les paramètres $(a_y, \sigma_y, \rho)$. Le spread OAT–€STR
+mêle crédit, liquidité et effets d'offre de titres et de collatéral (rareté des titres d'État remis en garantie,
+programme d'émission du Trésor). \citet{MonfortRenne2014} identifient la liquidité par l'écart entre les titres
+de la KfW, garantis par l'État fédéral allemand, et le Bund ; pour pricer une option sur OAT, seul le spread
+total compte, et on ne le décompose pas.
+
+\subsection{La courbe OAT n'identifie pas le facteur spread}
+\label{sec:h1}
+
+\citet[éq.~56-57]{Russo} calibrent le facteur spread sur la courbe des zéro-coupons risqués. Pour chaque
+$\rho$ d'une grille sur $[-1,1]$, on minimise en $(a_y,\sigma_y)$ l'erreur relative entre les prix de marché
+$\bar P^M(0,T_i)$ et les prix $\bar P^\ast(0,T_i) = e^{-\int_0^{T_i}\bar\alpha}$, puis on retient le $\rho$ de
+plus faible erreur. Or le recalage~\eqref{eq:recalage} impose
+\begin{equation}
+\int_0^T\bar\alpha = -\log\bar P^M(0,T) + \tfrac12\bar V(0,T)\quad\Longrightarrow\quad
+\bar P^\ast(0,T) = \bar P^M(0,T)\,e^{-\frac12\bar V(0,T)}.
+\end{equation}
+L'erreur à minimiser est donc $\big|e^{-\frac12\bar V(0,T)} - 1\big|$ : la procédure minimise la convexité
+totale $\bar V = V_x + V_y + V_{xy}$ de la courbe OAT, et non un écart au marché. $V_x$ étant fixé par le facteur
+taux, l'optimum pousse le terme croisé à compenser $V_x$, donc vers $\rho < 0$ et vers des $(a_y,\sigma_y)$ qui
+rendent $V_y + V_{xy}$ aussi négatif que possible. La solution exacte est $\rho = -1$, $a_y = a_x$,
+$\sigma_y = \sigma_x$ : le facteur spread annule alors le facteur taux ($x + y \equiv 0$), le taux OAT devient
+déterministe et $\bar V \equiv 0$. Le tableau~\ref{tab:h1} le vérifie numériquement.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Procédure de calibration de Russo et al. appliquée à la courbe OAT ($a_x$ et $\sigma_x$ fixés)}
+\label{tab:h1}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lccccccccccc@{}}
+\toprule
+$\rho$ & $-1$ & $-0{,}8$ & $-0{,}6$ & $-0{,}4$ & $-0{,}2$ & $0$ & $0{,}2$ & $0{,}4$ & $0{,}6$ & $0{,}8$ & $1$ \\
+\midrule
+$a_y$ & 0,011 & 0,011 & 0,011 & 0,011 & 0,070 & 1,373 & 2,000 & 2,000 & 2,000 & 2,000 & 2,000 \\
+$\sigma_y$ (\%) & 0,74 & 0,59 & 0,44 & 0,29 & 0,23 & 0,01 & 0,01 & 0,01 & 0,01 & 0,01 & 0,01 \\
+Erreur (\%) & 0,000 & 2,788 & 4,860 & 6,291 & 7,136 & 7,408 & 7,409 & 7,410 & 7,411 & 7,412 & 7,414 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+L'erreur s'annule en $\rho = -1$ avec $(a_y, \sigma_y) = (a_x, \sigma_x)$. Pour $\rho \ge 0$, le facteur spread ne
+peut qu'ajouter de la convexité : l'optimiseur ramène $\sigma_y$ sur sa borne inférieure, et l'erreur
+résiduelle, 7,41~\%, est celle du seul terme de convexité du facteur taux, $|e^{-V_x/2} - 1|$. Appliquée à une courbe recalée par construction, la
+procédure ne peut donc identifier aucun des trois paramètres. C'est le principe des modèles à shift
+déterministe : la courbe initiale fixe le shift, et les paramètres de diffusion se calibrent sur des options
+\citep[CM2, p.~30-31]{Hillairet2026}. Dans un modèle affine gaussien, la volatilité n'entre dans la coupe des
+rendements que par le terme de convexité de la constante \citep[cours~3, éq.~II.8]{MPR2025}, et le recalage
+absorbe ce terme. \citet[section~22.7.2]{BrigoMercurio2006} font le même constat pour l'intensité de défaut,
+dont ils fixent la corrélation par estimation historique ; ils notent aussi qu'un G2++ calibré avec $\rho$
+proche de $-1$ dégénère en modèle à un facteur (section~4.2.7), ce qui est l'optimum exact de la procédure.
+\emph{L'hypothèse~H1 est rejetée.}
+
+\subsection{L'information des séries historiques}
+
+Dans le modèle, le spread de taux zéro de tenor $\tau$ vaut $c_\tau(t) + y(t)\,H_{a_y}(\tau)/\tau$, où $c_\tau$ est
+déterministe. Sa volatilité instantanée est $\sigma_y H_{a_y}(\tau)/\tau$, et sa corrélation avec le taux €STR de
+même tenor est $\rho$. Ce sont des propriétés des trajectoires, qui relèvent de la variation quadratique : elles
+sont les mêmes sous la mesure historique et sous la mesure de pricing, car le changement de mesure de Girsanov ne
+modifie que les dérives \citep[CM3, p.~5-6]{Hillairet2026}. En temps discret, un facteur d'actualisation
+exponentiel-affine change de même la constante et la matrice autorégressive d'un VAR gaussien, jamais sa variance
+\citep[cours~3, prop.~I.3, slides~24-25]{MPR2025}. Dans le modèle, l'égalité des volatilités sous les deux mesures
+est donc un théorème ; appliquée aux données, c'est une hypothèse, celle d'une prime de risque de variance nulle,
+qu'un facteur d'actualisation exponentiel-quadratique lèverait (cours~6, slides~116-117) et que l'absence d'options
+sur OAT ne permet pas de tester. Le cadre de crédit va dans le même sens : quand le défaut n'est pas pricé,
+l'intensité est la même fonction des facteurs sous $\P$ et sous $\Q$, et seule la dynamique des facteurs change
+(cours~5, prop.~II.3).
+
+Le coefficient $H_{a_y}(\tau)/\tau$ vient du prix d'un zéro-coupon : la vitesse de retour qui y figure est la
+vitesse risque-neutre (cours~3, prop.~I.1, slide~17). La structure par terme des volatilités du spread identifie
+donc $(a_y, \sigma_y)$ sous la mesure de pricing. Une volatilité décroissante avec le tenor signalerait un retour à
+la moyenne ; une volatilité plate impose $a_y \approx 0$. Une régression sur le niveau du spread ne donnerait, elle,
+qu'une vitesse de retour historique.
+
+On utilise les séries quotidiennes du spread entre le rendement OAT générique et le taux de swap €STR de même
+tenor, les rendements de pair servant d'approximation des taux zéro. Le tenor de deux ans est exclu : la série
+générique OAT à deux ans saute de $-65$~pb le 22 janvier 2024 sans revenir, au changement du titre de référence, et
+le court terme est dominé par les BTF et la politique monétaire. Le tableau~\ref{tab:vol_spread} donne les moments
+par tenor sur trois fenêtres.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Volatilité annualisée du spread (pb par an) et corrélation de ses variations quotidiennes avec celles
+du swap €STR de même tenor}
+\label{tab:vol_spread}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+ & \multicolumn{2}{c}{2021-2026} & \multicolumn{2}{c}{Trois ans} & \multicolumn{2}{c}{Un an} \\
+\cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+Tenor & Volatilité & $\rho$ & Volatilité & $\rho$ & Volatilité & $\rho$ \\
+\midrule
+5 ans  & 33,9 & 0,064 & 28,8 & 0,067 & 26,5 & 0,272 \\
+10 ans & 32,7 & 0,162 & 30,5 & 0,182 & 31,9 & 0,434 \\
+15 ans & 33,2 & 0,118 & 29,8 & 0,147 & 28,2 & 0,387 \\
+20 ans & 33,1 & 0,152 & 30,5 & 0,181 & 30,9 & 0,373 \\
+25 ans & 33,1 & 0,148 & 30,9 & 0,169 & 30,1 & 0,360 \\
+30 ans & 34,2 & 0,124 & 32,2 & 0,146 & 31,9 & 0,275 \\
+\midrule
+Ajustement & \multicolumn{2}{c}{$\sigma_y = 0{,}337\,\%$} & \multicolumn{2}{c}{$\sigma_y = 0{,}307\,\%$} & \multicolumn{2}{c}{$\sigma_y = 0{,}302\,\%$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La volatilité du spread est presque plate en tenor. Ajustée fenêtre par fenêtre, la structure par terme
+$\sigma_y H_{a_y}(\tau)/\tau$ place $a_y$ sur sa borne inférieure de 0,001, soit une demi-vie de près de sept
+siècles, dans les trois cas, avec un écart maximal de 1,0 à 3,6~pb (figure~\ref{fig:spread_historique}). La
+corrélation est positive : le spread s'élargit quand les taux montent. Elle varie toutefois de 0,064 à 0,434
+selon le tenor et la fenêtre, et cette fourchette servira de sensibilité.
+
+Le modèle ne comporte qu'un facteur de spread. L'analyse en composantes principales des variations quotidiennes
+du spread aux tenors 5 à 30 ans attribue 85,8~\% de leur variance à la première composante, dont les chargements
+sont presque égaux d'un tenor à l'autre (de 0,36 à 0,43) : le spread se déplace surtout en bloc, ce que décrit un
+facteur unique à vitesse de retour faible. La deuxième composante, une pente qui explique 8,4~\% de la variance,
+reste hors du modèle.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{spread_historique}
+\caption{À gauche, volatilité du spread OAT–€STR par tenor sur trois fenêtres (points) et structure par terme
+ajustée (traits), comparée au profil qu'imposerait $a_y = 0{,}2$ ; à droite, variations quotidiennes du spread et
+du swap €STR à vingt ans.}
+\label{fig:spread_historique}
+\end{figure}
+
+\subsection{Estimation par la méthode des moments généralisée}
+
+Le pricing n'a besoin que de $(a_y,\sigma_y,\rho)$, pas de toute la dynamique historique du spread : c'est le
+cadre de la méthode des moments généralisée \citep[cours~5, slide~8]{Hansen1982,MPR2025}. On retient
+douze moments, calculés sur 1\,451 variations quotidiennes aux dates communes des tenors 5, 10, 15, 20, 25 et
+30 ans :
+\begin{equation}
+m^{vol}_\tau(\theta) = \sigma_y\,\frac{H_{a_y}(\tau)}{\tau},\qquad m^{corr}_\tau(\theta) = \rho,
+\end{equation}
+le premier pour la volatilité annualisée du spread, le second pour sa corrélation avec le swap €STR de même tenor.
+Les corrélations entre spreads de tenors différents sont écartées : égales à 1 dans un modèle à un facteur,
+elles le rejetteraient par construction.
+
+Avec $\hat m$ les moments observés et $g(\theta) = m(\theta) - \hat m$, l'estimateur minimise
+$g(\theta)'\,W\,g(\theta)$. La covariance $S$ des moments estimés doit tenir compte de deux propriétés des
+données. Les variations quotidiennes du spread sont hétéroscédastiques : le test ARCH-LM d'\citet{Engle1982}, à
+dix retards, rejette l'homoscédasticité à chaque tenor (statistique de 101 à 161, p-valeur au plus
+$3{,}2\times10^{-17}$). Elles sont aussi légèrement autocorrélées. On estime donc $S$ par bootstrap par blocs
+mobiles \citep{Kunsch1989}, avec des blocs de vingt jours consécutifs et 500 tirages, par le même code pour
+tous les moments.
+
+La pondération asymptotiquement efficace est $W = S^{-1}$. Mais les erreurs d'estimation des moments sont ici
+très corrélées d'un tenor à l'autre, de 0,90 à 0,98 pour les volatilités et de 0,82 à 0,98 pour les corrélations
+entre tenors voisins, et $S^{-1}$ combine alors les moments avec des poids implicites négatifs. L'estimation
+efficace de $\rho$, 0,028, sort ainsi de l'intervalle de toutes les corrélations observées sur la période
+(de 0,064 à 0,162). C'est le biais de petit échantillon de la GMM efficace appliquée aux structures de covariance,
+documenté par \citet{AltonjiSegal1996}, qui recommandent une pondération diagonale. On retient donc
+$W_1 = \mathrm{diag}(S)^{-1}$ : chaque moment pèse en proportion inverse de sa variance. Les écarts-types sont ceux
+de la formule sandwich $(G'W_1G)^{-1}G'W_1SW_1G(G'W_1G)^{-1}$, où $G$ est la jacobienne de $g$, valide quelle que
+soit la pondération. La GMM efficace sert au test de sur-identification de \citet{Hansen1982}. Comme $a_y$ bute sur
+sa borne, l'inférence classique ne s'applique pas à ce paramètre : écarts-types et statistique $J$ sont calculés à
+$a_y$ fixé.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Estimation GMM des paramètres du spread (écarts-types entre parenthèses)}
+\label{tab:gmm}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Pondération & $a_y$ & $\sigma_y$ (\%) & $\rho$ \\
+\midrule
+Diagonale, $W_1 = \mathrm{diag}(S)^{-1}$ (retenue) & 0,001 (borne) & 0,3374 (0,0182) & 0,130 (0,040) \\
+Efficace, $W_2 = S^{-1}$ & 0,001 (borne) & 0,3257 (0,0141) & 0,028 (0,034) \\
+\midrule
+\multicolumn{4}{@{}l}{Test de Hansen : $J = 73{,}7$ pour 10 degrés de liberté, p-valeur $8{,}7\times10^{-12}$} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+L'estimation retenue (tableau~\ref{tab:gmm}) donne une volatilité du spread de 33,7~pb par an et une corrélation de
+0,13, la vitesse de retour restant sur sa borne. Les volatilités ajustées vont de 33,2 à 33,7~pb selon le tenor,
+pour des volatilités observées de 32,7 à 34,2~pb. Le test $J$ rejette le modèle. Avec près de 1\,450 observations,
+le test est très puissant : il rejette un spread à un facteur qui ne reproduit ni des corrélations variant d'un
+tenor à l'autre, ni la légère hausse des volatilités aux tenors extrêmes. Les estimations se lisent alors comme les
+paramètres du modèle à un facteur le plus proche des moments observés. Les paramètres retenus pour la suite sont
+\begin{equation}
+a_x = 0{,}0107,\quad \sigma_x = 0{,}7367\,\%,\qquad a_y = 0{,}001,\quad \sigma_y = 0{,}3374\,\%,\quad \rho = 0{,}130.
+\end{equation}
+
+\subsection{Régimes de volatilité du spread}
+\label{sec:regimes}
+
+La méthode des moments suppose la volatilité du spread constante, alors que le test ARCH-LM rejette
+l'homoscédasticité : $\sigma_y$ est une moyenne sur la période. Pour les spreads souverains de la zone euro,
+\citet{MonfortRenne2014} emploient un modèle à deux régimes, dont un régime de crise
+\citep[cours~5, slides~99-101]{MPR2025}. On ajuste le modèle de régression à changement de régime du cours
+(slides~25 et~29) à la variation quotidienne du spread à vingt ans, expliquée par celle du swap €STR de même
+tenor :
+\begin{equation}
+\Delta S_t = c_{k_t} + \beta_{k_t}\,\Delta R_t + \sigma_{k_t}\,\varepsilon_t,\qquad \varepsilon_t \sim \mathcal N(0,1)\ \text{i.i.d.},
+\end{equation}
+où le régime $k_t$, calme ou agité, suit une chaîne de Markov à deux états non observée. Le filtre de
+Kitagawa-Hamilton donne la vraisemblance, maximisée en $(c_k, \beta_k, \sigma_k)$ et en les probabilités de
+transition \citep[cours~5, slide~39]{Hamilton1989,MPR2025} ; l'algorithme de \citet{Kim1994} donne les
+probabilités lissées des régimes. Dans chaque régime, la volatilité du spread et sa corrélation avec le swap se
+calculent sur les variations pondérées par ces probabilités, et la part du temps passée dans chaque régime est sa
+probabilité stationnaire (cours~5, slide~35).
+
+\begin{table}[htbp]
+\centering\small
+\caption{Régimes de volatilité du spread à vingt ans (durées en jours ouvrés, volatilités en pb par an)}
+\label{tab:regimes}
+\begin{tabular}{@{}llccccc@{}}
+\toprule
+Variations & Régime & Part du temps & Durée moyenne & Vol. du spread & Vol. du swap & $\rho$ \\
+\midrule
+\multirow{2}{*}{Quotidiennes} & calme & 0,73 & 43 & 23,0 & 59,7 & 0,16 \\
+ & agité & 0,27 & 16 & 51,1 & 89,4 & 0,15 \\
+\midrule
+\multirow{2}{*}{Hebdomadaires} & calme & 0,65 & 137 & 19,0 & 57,8 & 0,22 \\
+ & agité & 0,35 & 73 & 42,6 & 95,2 & $-0{,}01$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Deux régimes se dégagent nettement (tableau~\ref{tab:regimes}). Sur variations quotidiennes, le régime calme
+occupe 73~\% du temps, avec une volatilité du spread de 23~pb par an, et le régime agité 27~\%, avec 51~pb. Les
+épisodes agités coïncident avec la remontée des taux de 2022 et du début de 2023, puis avec les crises politiques
+françaises de juin 2024 (dissolution de l'Assemblée nationale) et de l'automne 2024 (budget, censure du
+gouvernement) ; la figure~\ref{fig:regimes} les situe. Au 8 septembre 2026, la probabilité filtrée du régime
+agité est de 8~\%.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{regimes}
+\caption{Spread OAT–€STR à vingt ans et probabilité lissée du régime agité (variations quotidiennes).}
+\label{fig:regimes}
+\end{figure}
+
+Deux résultats comptent pour la suite. La corrélation n'est pas liée aux régimes : presque la même dans les deux
+régimes sur variations quotidiennes (0,16 et 0,15), elle s'annule dans le régime agité sur variations
+hebdomadaires. Les régimes de volatilité n'expliquent donc pas la fourchette de $\rho$ selon les fenêtres. Les
+régimes sont par ailleurs courts au regard des échéances d'options : 43 et 16 jours ouvrés en moyenne sur variations
+quotidiennes, 137 et 73 sur variations hebdomadaires. La section~\ref{sec:resultats} en mesure l'effet sur le prix.

@@ -1,0 +1,113 @@
+\section{Données et courbes de marché}
+\label{sec:donnees}
+
+\subsection{Données}
+
+Les données de marché sont celles de Bloomberg à la clôture du 8 septembre 2026, pour un règlement le
+10 septembre. Cette date de règlement est l'origine des temps, $t=0$ ; le temps est mesuré en années sur une base
+ACT/365, sans calendrier de jours ouvrés. Le tableau~\ref{tab:donnees} décrit les quatre sources utilisées.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Données de marché (Bloomberg, clôture du 8 septembre 2026)}
+\label{tab:donnees}
+\begin{tabularx}{\textwidth}{@{}l X X@{}}
+\toprule
+Source & Contenu & Usage \\
+\midrule
+Courbe €STR & 32 taux de swaps OIS €STR, de 1 semaine à 50 ans & courbe sans risque \\
+Cube de swaptions & volatilités normales des swaptions EUR à la monnaie, 21 expiries $\times$ 14 tenors & calibration du facteur taux \\
+OAT & 19 titres d'État (5 zéro-coupons courts, 14 OAT de 2028 à 2072) : coupon, maturité, prix clean & courbe OAT, sous-jacent \\
+Historiques & rendements OAT génériques et taux de swaps €STR à 2, 5, 10, 15, 20, 25 et 30 ans, quotidiens & estimation du facteur spread \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Les historiques couvrent la période du 1\textsuperscript{er} janvier 2021 au 8 septembre 2026, soit 1\,475 jours
+ouvrés. Ils sont exportés avec des dates mal formées, dates Excel et texte au format américain mêlés ; la grille
+étant quotidienne et complète, on la reconstruit. Les séries s'arrêtent à la date de valorisation, de sorte
+qu'aucune information postérieure n'entre dans l'estimation.
+
+S'y ajoute une courbe de spread repo, écart entre le taux de pension livrée de l'OAT et le taux zéro €STR de même
+durée. Faute de cotations accessibles, \emph{cette courbe est fictive} : elle vaut +20~pb à trois semaines, puis
+croît linéairement jusqu'à +75~pb à dix ans. Les options étudiées ont une échéance de dix ans au plus, de sorte
+que la courbe couvre toutes les échéances sans jamais être prolongée. Une courbe de marché la remplacerait au même
+format, sans modification du code ; la section~\ref{sec:resultats} mesure l'effet de son niveau.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{donnees}
+\caption{Données au 8 septembre 2026. À gauche, taux de swaps €STR et rendements des OAT ; au centre,
+volatilités normales des swaptions à la monnaie ; à droite, historique du spread OAT–€STR à quatre tenors.}
+\label{fig:donnees}
+\end{figure}
+
+La figure~\ref{fig:donnees} résume ces données. Aux tenors longs, le spread OAT–€STR s'est élargi d'une
+centaine de points de base depuis 2021, avec deux sauts nets, en juin 2024 puis à l'automne 2024. À deux ans, il est resté négatif presque
+tout au long de 2021 et 2022.
+
+\subsection{Courbe sans risque €STR}
+
+Les swaps OIS €STR, qui ont remplacé les swaps EONIA \citep[CM1, p.~12]{Hillairet2026}, servent à construire la
+courbe sans risque $P^M(0,T)$. Le taux OIS est le rendement du seul taux court au jour le jour
+\citep[cours~5, éq.~II.17]{MPR2025}, et la même courbe actualise les flux collatéralisés
+\citep[section~3.4]{Chaix2021}. Un swap de maturité $T$ et de taux fixe $S$, à jambe fixe annuelle, vaut zéro à
+l'initiation :
+\begin{equation}
+S \sum_{i} \tau_i\,P^M(0,T_i) + P^M(0,T) = 1, \qquad T_i = T, T-1, \dots
+\end{equation}
+On résout cette équation pilier après pilier (\emph{bootstrap}), $P^M(0,T)$ étant la seule inconnue une fois
+les facteurs d'actualisation intermédiaires interpolés linéairement en taux zéro. La courbe obtenue reprice
+les 32 swaps à 0,25~pb près.
+
+Le modèle utilise le forward instantané $f^M(0,t) = -\partial_t \log P^M(0,t)$, qui entre dans le terme de
+recalage. Une interpolation linéaire des taux zéro donnerait un forward discontinu ; on interpole donc
+$\log P^M(0,T)$ par une spline cubique, ce qui rend $f^M$ continu et dérivable. La courbe €STR étant
+décroissante au-delà de vingt ans, le forward long y est nettement inférieur aux taux zéro : environ 1,4~\%
+à cinquante ans, pour un taux zéro proche de 2,8~\%.
+
+\subsection{Courbe OAT et sous-jacent}
+
+La courbe $\bar P^M(0,T)$ est la courbe d'actualisation qui reprice les OAT. Un bootstrap titre par titre
+propagerait à toute la courbe l'erreur de prix du titre le plus court et dépendrait des particularités de chaque
+titre \citep[CM1, p.~27]{Hillairet2026}, alors que le modèle a besoin d'un forward régulier. On ajuste donc la
+paramétrisation de \citet{NelsonSiegel1987} étendue par \citet{Svensson1994}, qu'utilisent la plupart des
+banques centrales \citep[cours~3, slide~109]{MPR2025}, sur le taux zéro continu :
+\begin{equation}
+\begin{split}
+\bar R(T) = \beta_0 + \beta_1\,\frac{1-e^{-T/\lambda_1}}{T/\lambda_1}
+&+ \beta_2\Big(\frac{1-e^{-T/\lambda_1}}{T/\lambda_1} - e^{-T/\lambda_1}\Big)
++ \beta_3\Big(\frac{1-e^{-T/\lambda_2}}{T/\lambda_2} - e^{-T/\lambda_2}\Big), \\
+\bar P^M(0,T) &= e^{-\bar R(T)\,T}.
+\end{split}
+\end{equation}
+Les six paramètres sont ajustés par moindres carrés sur les prix dirty (coupon couru inclus) des dix-neuf
+titres. Chaque erreur de prix est divisée par la duration du titre, ce qui la rend homogène à une erreur de
+rendement ; sans cette pondération, les titres longs domineraient l'ajustement. Le coupon couru, calculé en
+ACT/ACT, sert à passer du prix clean (pied de coupon) au prix dirty, aujourd'hui comme à l'échéance d'une
+option.
+
+L'erreur quadratique moyenne est de 4,1~pb de rendement (annexe~C). Les résidus se concentrent sur l'extrême long
+terme, que six paramètres ne peuvent pas reproduire : les OAT 2050 (coupon de 1,5~\%) et 2072 (0,5~\%) se
+traitent cher, par demande de duration et de convexité, et l'OAT 2057 sous la courbe (résidu de $-14{,}5$~pb). Ces
+écarts pèsent peu sur le prix de l'option. Son forward est calculé à partir du prix de marché du sous-jacent
+(section~\ref{sec:evaluation}), et la courbe OAT n'y entre qu'à travers la répartition des flux et la loi du
+spread.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{courbe_oat}
+\caption{Courbes zéro OAT (Nelson-Siegel-Svensson) et €STR, et spread OAT–€STR en taux zéro et en taux forward
+instantané.}
+\label{fig:courbe_oat}
+\end{figure}
+
+Le spread zéro $\bar R(T) - R(T)$ et le spread forward $\bar f^M - f^M$ de la figure~\ref{fig:courbe_oat}
+donnent la partie déterministe du facteur spread. Le spread court est faible : le taux OAT contient, outre le
+risque de défaut, des primes de liquidité et de collatéral \citep[p.~8]{Russo}, et le spread peut changer de
+signe, comme à deux ans en 2021-2022. Un modèle gaussien, où le spread n'est pas contraint à rester positif, est
+donc admissible.
+
+Les options portent sur l'OAT 4,10~\% du 25 mai 2046 (FR0014015MU5), de maturité résiduelle 19,7 ans, dont le
+prix clean est 91,690 et le prix dirty 92,903. La courbe la reprice à 2,0~pb de rendement près. Les échéances
+des options sont 1, 2, 5, 7 et 10 ans ; à dix ans, il reste encore dix flux au titre.

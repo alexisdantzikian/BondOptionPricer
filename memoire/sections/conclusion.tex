@@ -1,0 +1,90 @@
+\section*{Conclusion}
+\addcontentsline{toc}{section}{Conclusion}
+
+Le mémoire a reconstruit sur des données françaises le modèle G2++ de \citet{BrigoMercurio2006}, dans la lecture
+de \citet{Russo} où le second facteur est le spread, pour évaluer une option vanille collatéralisée sur l'OAT
+4,10~\% 2046 dont le forward est fixé par le repo. Le modèle est recentré sur ce forward comme il est recalé sur
+les courbes, et l'option a un prix exact, validé par un Monte-Carlo sans discrétisation.
+
+\subsection*{Réponses aux hypothèses}
+
+L'hypothèse H1 est rejetée. La courbe OAT étant recalée par construction, la procédure de calibration de
+\citet{Russo} ne mesure que la convexité de la courbe ; son optimum exact ($\rho = -1$, $a_y = a_x$,
+$\sigma_y = \sigma_x$) rend le taux OAT déterministe, et elle ne peut identifier aucun paramètre du spread.
+
+L'hypothèse H2 est confirmée pour la mesure de pricing et rejetée pour la mesure historique. La structure par
+terme des volatilités du spread, comme la coupe des spreads dans le filtre de Kalman, identifie une vitesse de
+retour risque-neutre quasi nulle ; la GMM estime $\sigma_y$ à 33,7~pb par an et $\rho$ à 0,13, le filtre de Kalman
+33,1~pb et 0,15. Mais $\rho$ varie de 0,06 à 0,43 selon le tenor et la fenêtre, bien au-delà de son écart-type, six
+ans de données ne suffisent pas à identifier la dynamique historique, et les tests de Hansen et de Ljung-Box
+rejettent le spread à un facteur. Les deux régimes de volatilité, de 23 et 51~pb par an, sont trop courts pour
+peser sur le prix.
+
+L'hypothèse H3 est confirmée : le facteur spread renchérit le call à la monnaie de 17~\% à toutes les échéances,
+et les volatilités réalisées des taux à vingt ans confirment cet ordre de grandeur (rapport OAT~/~€STR de 1,17 dans
+les données et de 1,18 dans le modèle).
+
+L'hypothèse H4 est rejetée avec les paramètres estimés. Les deux vitesses de retour étant quasi nulles, un
+Hull-White à un facteur sur la courbe OAT, à la volatilité totale du taux OAT, reproduit le call à la monnaie à
+1,9~\% près, et, à volatilité ajustée, les prix de 90 à 110~\% du forward à 0,05~\% près. Ce qui compte pour une
+option sur une OAT est le niveau de cette volatilité, supérieur de 15~\% à celui que donnent les swaptions €STR ;
+sa mesure demande l'historique du spread, faute d'options sur OAT.
+
+L'hypothèse H5 est confirmée à la monnaie et rejetée en dehors. L'approximation à poids gelés ne s'écarte que de
+0,12~\% du prix exact à la monnaie lorsque les poids sont gelés à leur valeur forward recentrée ; en dehors, elle
+coûte jusqu'à $-3{,}0\,\%$ sur le call à 110~\% et $+4{,}3\,\%$ sur le put à 90~\%, à un an. Le pricer utilise donc le
+prix exact.
+
+À la question posée en introduction, la réponse est donc nuancée. Il faut mesurer la volatilité du spread, qui
+renchérit l'option de 17~\%, et les séries historiques permettent de l'identifier sous la mesure de pricing. Mais
+pour une option sur une seule OAT, un facteur de volatilité augmentée suffit à la représenter. Enfin, aux longues
+échéances, le prix dépend autant du niveau du financement en repo que du facteur spread : à dix ans, translater la
+courbe repo de $-25$ à $+25$~pb déplace le call à la monnaie de $-21\,\%$ à $+24\,\%$.
+
+\subsection*{Limites}
+
+La première limite est la courbe repo, fictive faute de cotations. Les options sont limitées à dix ans pour que
+cette courbe couvre toutes les échéances sans extrapolation ; une courbe de marché à ces durées reposerait
+elle-même sur un repo à terme peu liquide. Le recentrage $\delta$ place par ailleurs dans la moyenne du prix une
+perte anticipée que sa dispersion ignore. L'approximation reste limitée tant que $\delta$ est petit, 33~pb au plus
+ici, mais elle grandirait avec l'écart entre le spread repo et le spread de l'OAT.
+
+Le modèle ne comporte qu'un facteur par courbe, et les tests de Hansen et de Ljung-Box rejettent cette structure :
+un seul facteur ne reproduit ni les déformations de pente du spread (deuxième composante principale, 8~\% de la
+variance), ni des corrélations qui varient d'un tenor à l'autre. Le spread gaussien peut devenir négatif, ce qui
+n'est pas absurde pour un spread OAT–€STR, négatif à deux ans presque tout au long de 2021 et 2022. Seule une
+composante de crédit devrait rester positive ; un processus affine positif \citep[cours~1]{MPR2025} l'imposerait.
+Le spread, qui mêle crédit, liquidité et effets d'offre, est traité comme un facteur de risque de marché : le modèle
+ne décrit pas un événement de crédit sur l'État français.
+
+La calibration est mixte : la volatilité des taux est implicite, celles du spread et la corrélation sont
+historiques. Les deux sources sont compatibles sur 2021-2026 pour les taux, sans garantie qu'elles le restent, et
+pour le spread l'égalité des volatilités sous les deux mesures reste une hypothèse. La volatilité des taux est
+constante ; pour une option européenne, seule compte la variance intégrée jusqu'à l'échéance, et l'effet d'une
+volatilité dépendant du temps est borné par les résidus de la diagonale, 2,3~pb au plus. Les conventions sont
+simplifiées (base ACT/365 sans calendrier, tenors intermédiaires interpolés, rendements génériques de pair pris
+comme taux zéro). Enfin, le modèle gaussien impose sa forme aux prix hors de la monnaie, qu'aucun paramètre ne
+permet d'ajuster \citep[section~6.3.5]{Chaix2021}.
+
+\subsection*{Prolongements}
+
+Le premier prolongement est de remplacer la courbe repo fictive par une courbe de marché, au même format. Les
+résidus du filtre de Kalman réclament un facteur de pente par courbe et des erreurs de mesure autocorrélées.
+L'instabilité de $\rho$, que les régimes de volatilité n'expliquent pas, appellerait une corrélation stochastique,
+par exemple un processus autorégressif de Wishart \citep[cours~4, slides~115-118]{MPR2025}, et un G2++ à
+changement de régime, qui reste affine (cours~4, slides~44-45), traiterait des options plus courtes que les
+régimes. On pourrait aussi séparer une composante de crédit positive et une composante de liquidité, comme
+\citet{MonfortRenne2014}, ou introduire une prime de risque de variance sur le spread (cours~6, slides~116-118),
+identifiable si des options sur OAT devenaient liquides. Enfin, la structure à deux facteurs compterait vraiment
+pour des produits sensibles à l'écart entre les deux courbes, comme les options sur spread ou sur plusieurs titres.
+
+\subsection*{Recul sur la démarche}
+
+Trois enseignements dépassent le cas étudié. Le premier est de tester l'identification avant d'estimer : la
+procédure de calibration du papier de référence paraissait naturelle, mais une ligne de calcul montre qu'elle ne
+mesure que la convexité de la courbe, et sa mise en œuvre aurait produit des paramètres sans contenu. Le deuxième
+est que la définition du contrat compte autant que le modèle : le forward repo, imposé par la pratique de marché,
+déplace le prix à dix ans autant que le second facteur. Le troisième est qu'un modèle plus riche n'est utile que
+si le produit est sensible à ce qu'il ajoute ; ici, le second facteur se résume, pour le prix, à un supplément de
+volatilité, et c'est la mesure de ce supplément qui demande le plus de travail économétrique.
+\acompleter{apport du stage pour l'élève et prise de recul personnelle, en quelques phrases}.

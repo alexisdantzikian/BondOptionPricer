@@ -1,0 +1,98 @@
+\section{Un modèle gaussien à deux facteurs pour le taux OAT}
+\label{sec:modele}
+
+\subsection{Dynamique et moments gaussiens}
+
+Le taux court sans risque s'écrit $r(t) = \alpha(t) + x(t)$ et le spread court OAT–€STR
+$s(t) = \beta(t) + y(t)$, où $\alpha$ et $\beta$ sont déterministes et où $x$ et $y$ sont deux processus
+d'Ornstein-Uhlenbeck centrés \citep[éq.~4.4-4.5]{BrigoMercurio2006} :
+\begin{equation}
+\dd x = -a_x\,x\,\dd t + \sigma_x\,\dd W_x,\qquad \dd y = -a_y\,y\,\dd t + \sigma_y\,\dd W_y,\qquad
+\dd W_x\,\dd W_y = \rho\,\dd t,
+\label{eq:dynamique}
+\end{equation}
+avec $x(0) = y(0) = 0$.
+Le taux court de l'OAT est $\bar r = r + s = \bar\alpha + x + y$, avec $\bar\alpha = \alpha + \beta$. Dans les
+notations de \citet{BrigoMercurio2006}, $(a_x, a_y, \sigma_x, \sigma_y)$ sont $(a, b, \sigma, \eta)$ et
+$\bar\alpha$ est $\varphi$.
+
+Toutes les formules du modèle se ramènent aux moments, conditionnels à $\F_t$, du vecteur gaussien formé de
+$x(T)$, $y(T)$, $\int_t^T x$ et $\int_t^T y$. Avec $\tau = T - t$, la duration stochastique d'un zéro-coupon est
+\begin{equation}
+H_a(t,T) = \frac{1-e^{-a\tau}}{a}, \qquad \E\Big[\int_t^T x(u)\,\dd u \,\Big|\, \F_t\Big] = H_{a_x}(t,T)\,x(t),
+\end{equation}
+et la variance de l'intégrale d'un facteur de paramètres $(a,\sigma)$ vaut
+\begin{equation}
+V_{a,\sigma}(t,T) = \Var\Big[\int_t^T x(u)\,\dd u\Big]
+= \frac{\sigma^2}{a^2}\Big[\tau + \frac{2}{a}e^{-a\tau} - \frac{1}{2a}e^{-2a\tau} - \frac{3}{2a}\Big].
+\end{equation}
+Le terme croisé est deux fois la covariance des intégrales \citep[lemme~4.2.1, éq.~4.10]{BrigoMercurio2006} :
+\begin{equation}
+V_{xy}(t,T) = \frac{2\rho\sigma_x\sigma_y}{a_x a_y}\Big[\tau - H_{a_x}(t,T) - H_{a_y}(t,T)
++ \frac{1-e^{-(a_x+a_y)\tau}}{a_x+a_y}\Big],
+\end{equation}
+et la variance totale $\bar V = V_x + V_y + V_{xy} = \Var\big[\int_t^T (x+y)\big]$ est la variance $V(t,T)$ du
+livre. Les variances et covariances des facteurs eux-mêmes, qui servent au pricing, sont données en annexe~A.
+
+\subsection{Le facteur taux seul : Hull-White et Jamshidian}
+
+Lorsque $\sigma_y = 0$, le modèle se réduit à celui de Hull et White sous la forme $r = \alpha + x$
+\citep[section~3.3]{BrigoMercurio2006}. Le terme déterministe recale la courbe €STR :
+$\int_0^T \alpha = -\log P^M(0,T) + \tfrac12 V_x(0,T)$. Comme $\int_t^T x$ est gaussien de moyenne
+$H_{a_x}(t,T)\,x(t)$ et de variance $V_x(t,T)$, le prix d'un zéro-coupon est log-affine en $x(t)$
+\citep[éq.~3.39]{BrigoMercurio2006} :
+\begin{equation}
+P(t,T) = \frac{P^M(0,T)}{P^M(0,t)}\,\exp\Big(-H_{a_x}(t,T)\,x(t) + \tfrac12\big[V_x(t,T) - V_x(0,T) + V_x(0,t)\big]\Big).
+\label{eq:zc_hw}
+\end{equation}
+
+Une option européenne d'échéance $T_0$ et de strike $X$ sur une obligation de flux $K_i$ aux dates $T_i$ a, dans
+ce modèle, un prix exact. Le prix de l'obligation en $T_0$ étant décroissant en $x(T_0)$, il existe un unique
+$x^\ast$ tel que $\sum_i K_i P(T_0,T_i;x^\ast) = X$, et l'option se décompose en une somme d'options sur
+zéro-coupons de strikes $X_i = P(T_0,T_i;x^\ast)$, chacune de formule fermée \citep{Jamshidian1989} ;
+\citet[section~3.11.1]{BrigoMercurio2006} et \citet[section~6.3.6]{Chaix2021} en donnent la mise en œuvre. Une
+swaption payeuse est un put de strike 1 sur l'obligation formée de la jambe fixe et du nominal : elle se price de
+la même façon \citep[éq.~3.44-3.46]{BrigoMercurio2006}. À la monnaie, son prix de marché en volatilité normale
+$\sigma_N$ est $A\,\sigma_N\sqrt{T_0/2\pi}$, où $A$ est l'annuité du swap sous-jacent.
+
+\subsection{Le spread comme second facteur}
+
+\citet{Russo} lisent les deux facteurs du G2++ comme le taux sans risque et le spread de crédit. On modélise ici
+directement le spread court OAT–€STR. Il contient la prime de crédit de l'État français, mais aussi des primes de
+liquidité et de collatéral : il est traité comme un facteur de risque de marché, sans chercher à en isoler la part
+de défaut.
+
+Les modèles de crédit à intensité justifient la forme $\bar r = r + y$. Supposons que le défaut soit un état
+absorbant, qu'il ne cause pas les facteurs de taux, lesquels ne sautent pas au défaut, et que l'événement de
+défaut lui-même ne soit pas pricé. Avec un recouvrement en valeur de marché, où le porteur récupère au défaut une
+fraction $\zeta$ du prix qu'aurait eu le titre sans défaut, le prix avant défaut d'un zéro-coupon risqué est
+\begin{equation}
+\bar P(t,T) = \E^{\Q}_t\Big[e^{-\int_t^T (r_u + \tilde\lambda_u)\,\dd u}\Big],\qquad \tilde\lambda \approx (1-\zeta)\,\lambda,
+\end{equation}
+où $\lambda$ est l'intensité de défaut et $\tilde\lambda$ l'intensité ajustée du recouvrement
+\citep[cours~5, hypothèses~II.1-II.3 et prop.~II.1-II.2]{DuffieSingleton1999,MPR2025}. Les prix ne
+révèlent que le produit de la perte et de l'intensité, jamais l'une sans l'autre, et une prime de liquidité
+s'ajoute de la même façon au taux d'actualisation (éq.~II.15 du cours). \citet[section~22.4]{BrigoMercurio2006}
+écrivent la même forme pour un recouvrement nul et une intensité corrélée aux taux. Le spread total $s = \beta + y$
+est donc modélisé par un facteur gaussien sans paramètre de perte : $y$ est une intensité ajustée qui agrège
+crédit, liquidité et collatéral. Ce cadre fonde la forme du taux d'actualisation avant défaut ; le mémoire ne
+modélise ni la date de défaut ni le saut du prix au défaut.
+
+Le terme $\bar\alpha$ recale directement la courbe OAT \citep[corollaire~4.2.1, éq.~4.13]{BrigoMercurio2006} :
+\begin{equation}
+\int_0^T\bar\alpha(u)\,\dd u = -\log\bar P^M(0,T) + \tfrac12\bar V(0,T),
+\label{eq:recalage}
+\end{equation}
+et la différence $\bar\alpha - \alpha = \beta$ est le spread forward de marché augmenté des termes de convexité du
+spread et du terme croisé. Comme $\int_t^T(x+y)$ est gaussien de moyenne $H_{a_x}x(t) + H_{a_y}y(t)$ et de
+variance $\bar V(t,T)$, le zéro-coupon OAT vaut \citep[théorème~4.2.1]{BrigoMercurio2006}
+\begin{equation}
+\bar P(t,T) = \frac{\bar P^M(0,T)}{\bar P^M(0,t)}\exp\Big(-H_{a_x}(t,T)\,x(t) - H_{a_y}(t,T)\,y(t)
++ \tfrac12\big[\bar V(t,T) - \bar V(0,T) + \bar V(0,t)\big]\Big).
+\label{eq:zc_oat}
+\end{equation}
+C'est l'expression des équations~16 à~24 de \citet{Russo}. Une OAT de flux $K_i$ aux dates $T_i$ vaut
+$\bar B(t) = \sum_i K_i \bar P(t,T_i)$ (prix dirty), et ses durations stochastiques sont
+$D_x = \sum_i w_i H_{a_x}(t,T_i)$ et $D_y = \sum_i w_i H_{a_y}(t,T_i)$, avec $w_i = K_i\bar P(t,T_i)/\bar B(t)$.
+Lorsque les deux vitesses de retour sont faibles, $H_{a_x} \approx H_{a_y}$ : les deux facteurs déplacent alors
+les prix des OAT de la même façon, propriété qui reviendra à la section~\ref{sec:resultats}.

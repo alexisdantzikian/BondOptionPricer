@@ -1,0 +1,118 @@
+% Mémoire de stage de fin d'études — ENSAE Paris, Mastère spécialisé, année 2025-2026
+% Compilation : latexmk -xelatex DANTZIKIAN_Alexis_MS25.tex
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{amsmath}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\setmainfont{Times New Roman}
+\setmathfont{TeX Gyre Termes Math}
+\usepackage[english,french]{babel}
+\frenchsetup{og=«, fg=»}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{multirow}
+\usepackage{threeparttable}
+\usepackage[font=small,labelfont=bf,labelsep=period]{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage{microtype}
+\usepackage{tocloft}
+\renewcommand{\cfttoctitlefont}{\Large\bfseries}
+\setlength{\cftbeforesecskip}{0.35em}
+\usepackage[round,semicolon]{natbib}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{figures/}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.45em}
+\setlist{itemsep=0.15em,topsep=0.3em}
+\renewcommand{\arraystretch}{1.1}
+\captionsetup[table]{position=top,skip=4pt}
+
+% Éléments que l'auteur doit renseigner : visibles en rouge dans le PDF
+\newcommand{\acompleter}[1]{\textcolor{red}{[à compléter : #1]}}
+
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Q}{\mathbb{Q}}
+\renewcommand{\P}{\mathbb{P}}
+\newcommand{\F}{\mathcal{F}}
+\newcommand{\dd}{\mathrm{d}}
+
+\begin{document}
+
+% ---------------------------------------------------------------------------------------------------
+% Page de couverture (modèle imposé par les consignes de l'ENSAE, p. 12)
+% ---------------------------------------------------------------------------------------------------
+\begin{titlepage}
+\singlespacing
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+\textbf{DANTZIKIAN Alexis}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}\raggedleft
+\textbf{Mastère Spécialisé} \acompleter{nom du mastère spécialisé}
+\end{minipage}
+
+\vspace{0.6cm}
+\noindent Stage de fin d'études\\
+Année scolaire 2025-2026
+
+\vfill
+\begin{center}
+{\LARGE\bfseries Options européennes sur OAT\\[0.3em] dans un modèle gaussien à deux facteurs\par}
+\vspace{0.8cm}
+{\large Spread OAT–€STR, identification des paramètres et prix exact\par}
+\end{center}
+\vfill
+
+\noindent
+\begin{minipage}[t]{0.48\textwidth}
+\acompleter{nom de l'entreprise}\\
+\acompleter{ville}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.48\textwidth}\raggedleft
+Maître de stage : \acompleter{Prénom NOM}\\
+\acompleter{dates du stage}
+\end{minipage}
+\end{titlepage}
+
+% ---------------------------------------------------------------------------------------------------
+\renewcommand{\contentsname}{Sommaire}
+\setcounter{tocdepth}{2}
+\begin{spacing}{1.0}
+\tableofcontents
+\end{spacing}
+\newpage
+
+\input{sections/introduction}
+\input{sections/s1_donnees}
+\input{sections/s2_modele}
+\input{sections/s3_evaluation}
+\input{sections/s4_taux}
+\input{sections/s5_spread}
+\input{sections/s6_kalman}
+\input{sections/s7_resultats}
+\input{sections/conclusion}
+
+\newpage
+\input{sections/bibliographie}
+
+\newpage
+\appendix
+\input{sections/annexes}
+
+\newpage
+\input{sections/synthese_fr}
+\newpage
+\input{sections/synthese_en}
+
+\end{document}

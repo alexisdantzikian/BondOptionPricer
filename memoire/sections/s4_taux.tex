@@ -1,0 +1,78 @@
+\section{Calibration du facteur taux}
+\label{sec:taux}
+
+\subsection{Objectif et jeux de calibration}
+
+Comme \citet[section~4.2.7]{BrigoMercurio2006} et \citet[éq.~55]{Russo}, on minimise les écarts relatifs entre
+les prix du modèle et les prix de marché de $N$ swaptions à la monnaie :
+\begin{equation}
+\min_{a_x,\sigma_x}\ \sqrt{\sum_{i=1}^{N}\Big(\frac{\mathit{Swpt}_i(a_x,\sigma_x) - \mathit{Swpt}_i^M}{\mathit{Swpt}_i^M}\Big)^2}.
+\end{equation}
+Les prix de marché sont les prix de Bachelier ; les prix du modèle sont les prix exacts de Jamshidian. Comme le
+prix d'une swaption à la monnaie est linéaire en volatilité normale, l'erreur relative de prix est aussi l'erreur
+relative de volatilité, et les résidus s'expriment en points de base de volatilité normale. L'optimisation
+(L-BFGS-B, $a_x \in [0{,}001\,;\,1]$, $\sigma_x \in [0{,}01\,\%\,;\,5\,\%]$) part de plusieurs points, et l'on
+retient le meilleur.
+
+Calibré sur la surface complète (291 swaptions, en excluant celles dont le swap se termine au-delà de cinquante
+ans), le modèle donne $a_x = 0{,}0136$ et $\sigma_x = 0{,}735\,\%$, pour une erreur quadratique moyenne de 4,5~pb.
+La carte des résidus (figure~\ref{fig:calibration_taux}, à gauche) montre une erreur structurelle : avec deux
+paramètres constants, le modèle surévalue les volatilités des expiries courtes, jusqu'à six mois, et sous-évalue
+celles des expiries de un à cinq ans sur les tenors courts.
+
+On calibre donc sur les swaptions qui comptent pour le produit, comme le recommandent
+\citet[section~4.2.7]{BrigoMercurio2006} et \citet[section~6.3.7]{Chaix2021} : la diagonale co-terminale
+$T_0 + n = 20$ ans, vingt ans étant la maturité résiduelle de l'OAT sous-jacente arrondie à l'année. Les swaptions
+dont le swap se termine à la maturité de l'obligation portent l'information sur la volatilité des taux qui
+compte pour l'option. Le cube ne cote que les tenors 1 à 10, 15, 20, 25 et 30 ans ; les tenors intermédiaires de
+la diagonale sont obtenus par interpolation linéaire de la volatilité normale en tenor, à expiry donnée. Avec
+$T_0 \ge 1$ an, la diagonale compte douze swaptions d'expiry 1 à 15 ans, dont huit interpolées.
+
+\subsection{Résultats}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Calibration de $(a_x, \sigma_x)$ sur les diagonales co-terminales (prix exacts de Jamshidian)}
+\label{tab:diagonales}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Diagonale & Swaptions (dont interpolées) & $a_x$ & $\sigma_x$ (\%) & Erreur relative (\%) \\
+\midrule
+10 ans & 9 (0) & 0,0010 & 0,7235 & 1,39 \\
+\textbf{20 ans} & \textbf{12 (8)} & \textbf{0,0107} & \textbf{0,7367} & \textbf{1,44} \\
+30 ans & 14 (9) & 0,0321 & 0,9453 & 1,62 \\
+20 ans, expiries 1 à 10 ans & 10 (8) & 0,0010 & 0,6761 & 1,27 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Sur la diagonale 20 ans, $(a_x,\sigma_x)$ sont identifiés conjointement : l'objectif n'a qu'un minimum, que les
+départs proches atteignent. On retient
+\begin{equation}
+a_x = 0{,}01067,\qquad \sigma_x = 0{,}7367\,\%.
+\end{equation}
+Le plus grand résidu, 2,3~pb, porte sur l'expiry d'un an, dont la volatilité de marché est interpolée ; les
+autres ne dépassent pas 1,3~pb (figure~\ref{fig:calibration_taux}, à droite). Les expiries de 12 et 15 ans
+dépassent la plus longue échéance d'option, mais ce sont elles qui identifient la vitesse de retour : restreinte
+aux expiries de 1 à 10 ans, la diagonale ne contraint plus $a_x$, et l'objectif décroît jusqu'à la borne
+inférieure (tableau~\ref{tab:diagonales}). Les diagonales 10 et 30 ans donnent d'autres paramètres : avec deux
+paramètres constants, les paramètres de taux dépendent du sous-jacent, ce qui justifie de calibrer sur la
+diagonale de l'OAT évaluée.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{calibration_taux}
+\caption{Calibration du facteur taux. À gauche, résidus du modèle calibré sur la surface complète (modèle moins
+marché, en points de base de volatilité normale) ; à droite, diagonale co-terminale 20 ans, marché et modèle
+calibré.}
+\label{fig:calibration_taux}
+\end{figure}
+
+La vitesse de retour calibrée, 0,011, est très inférieure à l'ordre de grandeur usuel de 0,2 à 2
+\citep[CM2, p.~6]{Hillairet2026}. C'est la diagonale qui l'impose ; la section~\ref{sec:resultats} montre que le
+prix de l'option en dépend peu tant que cette diagonale reste reproduite.
+
+Enfin, la diagonale permet de mesurer l'approximation à poids gelés en un facteur, où le prix exact est connu.
+L'écart entre la formule de Black à poids gelés et Jamshidian ne dépasse pas 0,07~\% du prix, et une calibration
+sur les prix à poids gelés donnerait $a_x = 0{,}01051$ et $\sigma_x = 0{,}7352\,\%$, des valeurs presque
+identiques.

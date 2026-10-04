@@ -1,0 +1,259 @@
+\section{Validation et résultats}
+\label{sec:resultats}
+
+Les résultats portent sur l'OAT 4,10~\% 2046, pour des options d'échéance 1, 2, 5, 7 et 10 ans et des strikes
+clean de 90 à 110~\% du forward clean, avec les paramètres retenus aux sections~\ref{sec:taux}
+et~\ref{sec:spread}. On valide d'abord le prix exact, puis on reprend les hypothèses H5, H3 et H4.
+
+\subsection{Validation du prix exact et précision des poids gelés}
+
+Le prix~\eqref{eq:prix_exact} est exact au calcul de l'intégrale près. On le valide par un Monte-Carlo
+indépendant. Le prix s'écrit
+$\E^{\Q}\big[e^{-\int_0^{T_0}r}\,(\bar B(T_0)-X)^+\big]$, et tout ce qui y entre est fonction du vecteur
+gaussien $Z = \big(x(T_0), y(T_0), \int_0^{T_0}x, \int_0^{T_0}y\big)$, de moyenne nulle sous $\Q$ et de covariance
+donnée en annexe~A. On simule $Z$ exactement, sans discrétisation en temps : le facteur d'actualisation vaut
+$P^M(0,T_0)\,e^{-\frac12V_x(0,T_0)}\,e^{-\int_0^{T_0}x}$, et $\bar B(T_0)$ s'obtient par la formule
+fermée~\eqref{eq:zc_oat}, le facteur spread étant décalé du recentrage $\delta$. La simulation utilise 400\,000
+trajectoires avec variables antithétiques.
+
+Trois contrôles précèdent le pricing, à cinq ans. La moyenne simulée de $e^{-\int r}$ vaut 0,863309, pour
+$P^M(0,5) = 0{,}863309$ ; celle de $e^{-\int \bar r}$ vaut 0,839610, pour $\bar P^M(0,5) = 0{,}839609$, ce qui
+teste le recalage de la courbe OAT et toute la matrice de covariance ; enfin le forward simulé vaut 87,903, pour
+un forward repo de 87,908, ce qui teste la loi forward et le recentrage. Dans le cas limite à un facteur
+($\sigma_y = 0$, courbe OAT confondue avec la courbe €STR), le prix exact du call à la monnaie à cinq ans,
+6,254832, est égal à celui de Jamshidian à la sixième décimale.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Prix exact, Monte-Carlo (MC, demi-largeur de l'intervalle de confiance à 95~\%) et approximation à poids
+gelés, $T_0 = 5$ ans (prix pour 100 de nominal ; écarts relatifs en \%)}
+\label{tab:validation}
+\begin{tabular}{@{}llcccccc@{}}
+\toprule
+Strike & Type & Exact & MC & IC 95~\% & Exact/MC $-1$ & Poids gelés & Gelés/exact $-1$ \\
+\midrule
+90~\%  & call & 9,9609 & 9,9513 & 0,0249 & 0,10 & 10,0170 & 0,56 \\
+90~\%  & put  & 2,4752 & 2,4696 & 0,0118 & 0,23 & 2,5313 & 2,27 \\
+100~\% & call & 5,7627 & 5,7512 & 0,0259 & 0,20 & 5,7695 & 0,12 \\
+100~\% & put  & 5,7627 & 5,7552 & 0,0131 & 0,13 & 5,7695 & 0,12 \\
+110~\% & call & 3,0727 & 3,0661 & 0,0217 & 0,22 & 3,0292 & $-1{,}42$ \\
+110~\% & put  & 10,5584 & 10,5558 & 0,0085 & 0,02 & 10,5149 & $-0{,}41$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le prix exact reste dans l'intervalle de confiance du Monte-Carlo pour tous les strikes
+(tableau~\ref{tab:validation}) et, à la monnaie, à toutes les échéances, où la demi-largeur relative de
+l'intervalle va de 0,4 à 0,5~\%. Le prix exact sert donc de référence pour mesurer l'erreur de l'approximation à
+poids gelés, sans bruit de simulation.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Erreur relative de l'approximation à poids gelés (poids forward recentrés) contre le prix exact, en \%}
+\label{tab:poids_geles}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & 1 an & 2 ans & 5 ans & 7 ans & 10 ans \\
+\midrule
+Call 90~\%  & 0,29 & 0,46 & 0,56 & 0,52 & 0,38 \\
+Call 100~\% & 0,04 & 0,08 & 0,12 & 0,11 & 0,08 \\
+Call 110~\% & $-2{,}98$ & $-2{,}18$ & $-1{,}42$ & $-1{,}17$ & $-0{,}92$ \\
+Put 90~\%   & 4,28 & 3,22 & 2,27 & 1,91 & 1,45 \\
+Put 110~\%  & $-0{,}28$ & $-0{,}39$ & $-0{,}41$ & $-0{,}37$ & $-0{,}28$ \\
+\midrule
+\multicolumn{6}{@{}l}{\footnotesize Poids gelés à leur valeur d'aujourd'hui, call 100~\% : de $-0{,}04$ à $+0{,}50$ (à 10 ans)} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+À la monnaie, l'approximation de \citet{Russo} s'écarte du prix exact de 0,12~\% au plus lorsque les poids sont
+gelés à leur valeur forward recentrée, contre 0,5~\% à dix ans s'ils sont gelés à leur valeur d'aujourd'hui
+(tableau~\ref{tab:poids_geles}). En dehors de la monnaie, l'erreur grandit quand l'échéance raccourcit : de
+$-0{,}9\,\%$ à dix ans à $-3{,}0\,\%$ à un an sur le call à 110~\%, de $+1{,}4\,\%$ à $+4{,}3\,\%$ sur le put à
+90~\%. La loi du prix de l'OAT, somme de lognormales, n'est pas lognormale : l'approximation sous-évalue sa queue
+droite et surévalue sa queue gauche, et l'erreur relative pèse d'autant plus que l'option est loin de la monnaie
+en nombre d'écarts-types, donc que l'échéance est courte (figure~\ref{fig:validation}).
+\emph{L'hypothèse~H5 est confirmée à la monnaie et rejetée en dehors} ; le pricer utilise le prix exact.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{validation}
+\caption{À gauche, call à cinq ans selon le strike : prix exact, poids gelés et Monte-Carlo ; à droite, erreur
+relative des poids gelés selon le strike, à 1, 5 et 10 ans.}
+\label{fig:validation}
+\end{figure}
+
+\subsection{Effet du facteur spread}
+\label{sec:h3}
+
+On compare le modèle à deux facteurs calibré au facteur taux seul ($\sigma_y = 0$, même forward repo, même
+courbe), c'est-à-dire à ce que donnerait un pricer Hull-White calibré sur les seules swaptions €STR.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Effet du facteur spread sur le call à la monnaie forward (prix pour 100 de nominal)}
+\label{tab:h3}
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+ & & \multicolumn{2}{c}{$\bar\Sigma_B$} & \multicolumn{3}{c}{Parts de $\bar\Sigma_B^2$} & \multicolumn{3}{c}{Call à la monnaie} \\
+\cmidrule(lr){3-4}\cmidrule(lr){5-7}\cmidrule(lr){8-10}
+$T_0$ & $F^{clean}$ & 2F & Taux seul & Taux & Spread & Croisée & 2F & Taux seul & Écart \\
+\midrule
+1 an   & 90,363 & 0,1007 & 0,0859 & 0,727 & 0,179 & 0,094 & 3,5781 & 3,0512 & +17,3~\% \\
+2 ans  & 89,323 & 0,1373 & 0,1170 & 0,726 & 0,180 & 0,094 & 4,6770 & 3,9878 & +17,3~\% \\
+5 ans  & 86,709 & 0,1909 & 0,1625 & 0,725 & 0,181 & 0,094 & 5,7627 & 4,9109 & +17,3~\% \\
+7 ans  & 85,618 & 0,2030 & 0,1727 & 0,724 & 0,181 & 0,094 & 5,6794 & 4,8378 & +17,4~\% \\
+10 ans & 85,266 & 0,1971 & 0,1677 & 0,724 & 0,182 & 0,094 & 4,9598 & 4,2223 & +17,5~\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Avec les paramètres estimés, le spread apporte 18~\% de la variance du prix forward de l'OAT, et le terme croisé
+9~\% de plus, car $\rho > 0$ : le spread s'élargit quand les taux montent (tableau~\ref{tab:h3}). La volatilité
+$\bar\Sigma_B$ dépasse de 17 à 18~\% celle du facteur taux seul, et le call à la monnaie est plus cher de 17~\% à
+toutes les échéances (figure~\ref{fig:resultats}). \emph{L'hypothèse~H3 est confirmée.}
+
+Le call à la monnaie croît jusqu'à cinq ans, puis décroît. Au-delà de cinq ans, l'obligation restante raccourcit :
+sa volatilité de prix plafonne vers sept ans puis baisse, et le forward comme l'actualisation diminuent. Le forward
+clean passe de 90,4 à un an à 85,3 à dix ans : porter une OAT qui rapporte plus que son financement fait baisser
+son prix forward, et l'effet s'accumule avec l'échéance. Le recentrage $\delta$ vaut $-2{,}6$, $-3{,}2$, $-0{,}9$,
+$8{,}3$ et $33{,}0$~pb aux cinq échéances : la courbe repo retenue est du même ordre que le spread de l'OAT, un peu
+au-dessus à un an et en dessous à dix ans, et l'approximation que porte $\delta$ (section~\ref{sec:evaluation})
+reste limitée.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{resultats}
+\caption{À gauche, call à la monnaie forward selon l'échéance, modèle à deux facteurs et facteur taux seul ; à
+droite, décomposition de $\bar\Sigma_B^2$ en parts taux, spread et croisée.}
+\label{fig:resultats}
+\end{figure}
+
+\subsection{Un facteur suffit-il ?}
+\label{sec:h4}
+
+La répartition de la variance ne dépend presque pas de l'échéance, parce que les deux vitesses de retour sont
+faibles : $H_{a_x} \approx H_{a_y}$, les deux facteurs déplacent les prix de la même façon, et leur somme se
+comporte comme un facteur unique de volatilité
+$\sigma_{eq} = \sqrt{\sigma_x^2 + \sigma_y^2 + 2\rho\sigma_x\sigma_y} = 0{,}849\,\%$, contre $\sigma_x = 0{,}737\,\%$.
+On le vérifie avec un Hull-White à un facteur sur la courbe OAT, de vitesse $a_x$ et de volatilité $\sigma_{eq}$.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Hull-White à un facteur équivalent contre modèle à deux facteurs}
+\label{tab:h4}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & \multicolumn{3}{c}{Volatilité $\sigma_{eq} = 0{,}849\,\%$} & \multicolumn{2}{c}{Volatilité ajustée à la monnaie} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-6}
+$T_0$ & Call 2F & Call 1F & Écart à la monnaie & Volatilité (\%) & Écart max. 90-110~\% \\
+\midrule
+1 an   & 3,5781 & 3,5165 & $-1{,}72$~\% & 0,8641 & 0,053~\% \\
+2 ans  & 4,6770 & 4,5951 & $-1{,}75$~\% & 0,8644 & 0,037~\% \\
+5 ans  & 5,7627 & 5,6572 & $-1{,}83$~\% & 0,8651 & 0,020~\% \\
+7 ans  & 5,6794 & 5,5729 & $-1{,}87$~\% & 0,8655 & 0,014~\% \\
+10 ans & 4,9598 & 4,8643 & $-1{,}92$~\% & 0,8659 & 0,008~\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Le Hull-White à un facteur reproduit le call à la monnaie du modèle à deux facteurs à 1,9~\% près à toutes les
+échéances, un peu en dessous, la sensibilité $H_{a_y}$ au spread dépassant légèrement $H_{a_x}$
+(tableau~\ref{tab:h4}). En dehors de la monnaie, l'écart grandit jusqu'à $-5{,}1\,\%$ sur le put à 90~\% à un an,
+mais il ne tient qu'au niveau de $\sigma_{eq}$, un peu trop bas. Avec une volatilité ajustée sur le call à la
+monnaie, de 0,864 à 0,866~\%, le modèle à un facteur reproduit les prix du modèle à deux facteurs de 90 à 110~\% du
+forward à 0,05~\% près. Le second facteur ne change donc pas la forme de la loi du prix de l'OAT à l'échéance,
+seulement sa dispersion. Pour une option sur une seule OAT, il agit comme un supplément de volatilité ; sa
+structure propre ne compterait que pour des produits sensibles à l'écart entre les deux courbes, comme les options
+sur spread ou sur plusieurs titres. C'est la frontière que tracent \citet[section~4.1]{BrigoMercurio2006} entre
+modèles à un et à deux facteurs, et \citet[section~6.4.6]{Chaix2021} de même : un facteur suffit quand les taux qui
+font le payoff sont presque parfaitement corrélés. Avec des vitesses quasi nulles, chaque facteur est proche d'un
+modèle de Ho et Lee, limite du Vasicek quand $a \to 0$ \citep[CM3, p.~14]{Hillairet2026}, et leur somme aussi.
+\emph{L'hypothèse~H4 est rejetée avec les paramètres estimés.}
+
+\subsection{Cohérence de la calibration mixte}
+
+Le facteur taux est calibré sur des volatilités implicites, le facteur spread sur des volatilités historiques. Le
+modèle calibré donne au swap €STR à vingt ans une volatilité de 66,3~pb par an et au rendement OAT à vingt ans
+78,1~pb ; sur 2021-2026, les volatilités réalisées sont de 69,1 et 81,0~pb. Le rapport OAT~/~€STR, qui mesure
+l'effet du spread, vaut 1,177 dans le modèle et 1,173 dans les données. Le contrôle n'est pas indépendant de la
+calibration, puisque la volatilité du spread et $\rho$ viennent des mêmes séries, mais il montre que la volatilité
+implicite des swaptions et les volatilités historiques ne se contredisent pas sur la période.
+
+Comme un facteur d'actualisation exponentiel-affine laisse la variance inchangée, ce contrôle teste, pour les taux,
+l'absence de prime de risque de variance que l'on doit supposer pour le spread. Le filtre de Kalman, estimé sur les
+seules séries, permet de mener ce test sur toute la diagonale : avec sa volatilité historique des taux (0,775~\%),
+il surévalue les volatilités des swaptions de 2,8~pb en moyenne (de 1,7 à 5,2~pb). La volatilité implicite à la
+même vitesse de retour est de 0,744~\%, et le rapport $\sigma^{\Q}/\sigma^{\P}$ vaut 0,96. L'écart est
+significatif, à 2,5 écarts-types, mais faible : s'il valait aussi pour le spread, il ne réduirait le call à la
+monnaie que de 0,9~\%.
+
+\subsection{Sensibilités}
+
+Le tableau~\ref{tab:sensibilites} rassemble les variations du call à la monnaie dans chaque scénario, par rapport
+au cas central.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Variation du call à la monnaie par rapport au cas central, en \%}
+\label{tab:sensibilites}
+\begin{tabular}{@{}llrrrrr@{}}
+\toprule
+Paramètre & Scénario & 1 an & 2 ans & 5 ans & 7 ans & 10 ans \\
+\midrule
+\multirow{2}{*}{Volatilité du spread} & $\sigma_y$ divisée par 2 & $-9{,}5$ & $-9{,}5$ & $-9{,}5$ & $-9{,}6$ & $-9{,}6$ \\
+ & $\sigma_y$ multipliée par 2 & $+27{,}7$ & $+27{,}7$ & $+27{,}7$ & $+27{,}8$ & $+27{,}9$ \\
+\multirow{2}{*}{Corrélation} & $\rho = 0{,}064$ & $-2{,}4$ & $-2{,}4$ & $-2{,}4$ & $-2{,}4$ & $-2{,}4$ \\
+ & $\rho = 0{,}434$ & $+10{,}4$ & $+10{,}4$ & $+10{,}4$ & $+10{,}4$ & $+10{,}4$ \\
+\multirow{2}{*}{Vitesse du spread} & $a_y = 0{,}215$ & $+4{,}3$ & $+2{,}6$ & $-0{,}7$ & $-1{,}7$ & $-1{,}9$ \\
+ & $a_y = 1$ & $-0{,}3$ & $-5{,}2$ & $-9{,}6$ & $-10{,}3$ & $-10{,}2$ \\
+Estimation du spread & filtre de Kalman & $+0{,}5$ & $+0{,}5$ & $+0{,}5$ & $+0{,}5$ & $+0{,}5$ \\
+\multirow{2}{*}{Vitesse des taux} & $a_x = 0{,}05$ & $+2{,}9$ & $+2{,}3$ & $+0{,}8$ & $+0{,}1$ & $-0{,}4$ \\
+ & $a_x = 0{,}2$ & $+14{,}9$ & $+9{,}8$ & $-0{,}1$ & $-3{,}0$ & $-3{,}2$ \\
+\multirow{3}{*}{Régimes} & toujours calme & $-5{,}9$ & $-5{,}9$ & $-5{,}9$ & $-6{,}0$ & $-6{,}0$ \\
+ & toujours agité & $+14{,}6$ & $+14{,}6$ & $+14{,}6$ & $+14{,}6$ & $+14{,}7$ \\
+ & régimes simulés (hebdomadaires) & $-0{,}6$ & $-0{,}3$ & $-0{,}1$ & $-0{,}1$ & $-0{,}1$ \\
+\multirow{3}{*}{Spread repo (fictif)} & courbe $-25$~pb & $-3{,}3$ & $-5{,}1$ & $-9{,}8$ & $-13{,}5$ & $-20{,}7$ \\
+ & courbe $+25$~pb & $+3{,}4$ & $+5{,}2$ & $+10{,}5$ & $+14{,}8$ & $+23{,}9$ \\
+ & financement au taux de l'OAT & $-0{,}6$ & $-0{,}6$ & $+3{,}1$ & $+10{,}6$ & $+27{,}1$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La corrélation est le paramètre le moins bien connu : sa fourchette historique, de 0,06 à 0,43, est bien plus
+large que l'incertitude statistique de l'estimation, et le call y varie de $-2\,\%$ à $+10\,\%$. La vitesse de
+retour du spread, à volatilité du spread à vingt ans inchangée puisque c'est elle que l'on observe, change le prix
+de moins de 5~\% jusqu'à 0,215, la vitesse historique estimée par le filtre de Kalman ; seul un retour rapide, que
+la structure par terme des volatilités exclut, le réduirait d'environ 10~\% aux longues échéances. Passer des
+paramètres de la GMM à ceux du filtre ne change le call que de 0,5~\%.
+
+La vitesse de retour des taux est imposée par la diagonale. Si on la fixe à 0,05 et qu'on recalibre $\sigma_x$, le
+plus grand résidu de la diagonale passe de 2,3 à 3,8~pb, et le call change de 3~\% au plus. À $a_x = 0{,}2$, le
+résidu atteint 11,1~pb et le call à un an monte de 15~\% : c'est l'erreur de calibration qui déplace le prix, pas
+la vitesse de retour elle-même, qui ne pèse que sur les instruments différents de ceux de la calibration
+\citep[section~6.3.8]{Chaix2021}.
+
+Pour mesurer l'effet des régimes, on répartit entre eux la variance et la covariance moyennes de la GMM :
+$\sigma_y$ vaut 0,24~\% en régime calme et 0,52~\% en régime agité, avec une corrélation commune de 0,14. Un
+spread qui resterait toute la vie de l'option dans le régime calme baisserait le call de 6~\%, dans le régime
+agité l'augmenterait de 15~\%. Mais les régimes ne durent que 43 et 16 jours ouvrés en moyenne : sur un an ou plus,
+le spread passe dans chacun une part de son temps proche de sa probabilité stationnaire, et, les vitesses de
+retour étant quasi nulles, seule compte la variance cumulée. En moyenne sur 20\,000 trajectoires de régimes
+simulées depuis la probabilité du régime agité au 8 septembre 2026, le call s'écarte de celui du modèle retenu de
+0,2~\% à un an ; avec les régimes plus longs estimés sur variations hebdomadaires, de 0,6~\% au plus. Sous la
+mesure de pricing, chaque régime garde sa variance \citep[cours~2, prop.~III.2, slide~69]{MPR2025} ; seules les
+probabilités de transition pourraient différer, si le risque de régime était rémunéré, ce que l'on exclut.
+
+Reste le financement. À un an, le niveau du repo pèse peu : translater la courbe de $-25$ à $+25$~pb déplace le
+call de $-3\,\%$ à $+3\,\%$. À dix ans, la même translation fait passer ce call de 3,93 à 6,15, autour de 4,96
+($-21\,\%$ à $+24\,\%$), et un financement au taux de l'OAT elle-même le porterait à 6,31
+(figure~\ref{fig:sensibilites}). Aux longues échéances, le niveau du financement, fictif ici, pèse donc autant que
+le facteur spread lui-même.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{sensibilites}
+\caption{À gauche, forward clean de l'OAT 2046 selon la courbe repo ; à droite, call à la monnaie selon la
+volatilité du spread.}
+\label{fig:sensibilites}
+\end{figure}

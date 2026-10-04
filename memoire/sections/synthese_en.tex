@@ -1,0 +1,47 @@
+\begin{otherlanguage}{english}
+\section*{Executive summary}
+\addcontentsline{toc}{section}{Executive summary}
+
+\textbf{Context.} This work was carried out during the end-of-studies internship at
+\acompleter{company name}, in \acompleter{team}, from \acompleter{dates}. It deals with the valuation of options on
+French government bonds (OATs). A call option gives the right to buy the bond at a future date for a price fixed
+today; a put option gives the right to sell it. The contract studied is the one traded by banks: the option is
+collateralised, with collateral paid at the €STR overnight rate, and its forward price follows from the cost of
+financing the bond in the repurchase (repo) market.
+
+\textbf{Research question.} The price of an OAT depends on two sources of risk: the level of risk-free rates, and
+the spread between the OAT yield and those rates, which compensates for the credit risk of the French State, the
+liquidity of the bond and supply effects. Standard interest rate models only capture the first source, and there
+is no liquid market for OAT options from which the volatility of the spread could be inferred. The question is
+therefore twofold: should the spread be modelled as a separate risk factor to price an OAT option, and can its
+parameters be identified from the available data?
+
+\textbf{Approach.} The model, taken from the literature (Brigo and Mercurio, 2006; Russo, Giacometti and Fabozzi),
+describes the OAT short rate as the sum of two Gaussian factors: the risk-free rate and the spread. The rate factor
+is calibrated to swaption prices, which are very liquid interest rate options. For the spread factor, we first
+show that the calibration procedure proposed in the reference paper, based on the OAT yield curve alone, cannot
+identify any parameter. The spread parameters are therefore estimated on six years of daily data (2021-2026),
+with two econometric methods taught at ENSAE: the generalised method of moments and maximum likelihood with the
+Kalman filter. The option price is computed exactly, and the computation is validated by Monte Carlo simulation.
+Market data come from Bloomberg (8 September 2026); the option is written on the 4.10\% OAT maturing in 2046, with
+expiries from one to ten years.
+
+\textbf{Results.} Four results stand out.
+\begin{itemize}
+\item The volatility of the spread is about 34 basis points per year and its correlation with rates is 0.13; it
+switches between a calm regime (23 basis points) and turbulent episodes (51 basis points), such as 2022 or the
+French political crises of 2024, but these episodes are too short to affect the price.
+\item Accounting for the spread makes the option 17\% more expensive, at all expiries.
+\item For an option on a single OAT, this effect amounts to a higher volatility: a one-factor model whose
+volatility is raised by about 17\% reproduces the prices within 0.05\%.
+\item The closed-form approximation of the reference paper is accurate for at-the-money options but errs by 3
+to 4\% for options far from the money: the exact price should be preferred.
+\end{itemize}
+Finally, for long expiries, the repo financing cost weighs as much on the price as the spread itself.
+
+\textbf{Limitations and extensions.} For lack of quotes, the repo curve used is fictitious; a market curve would
+replace it without changing the computations. Statistical tests show that a single factor per curve does not
+capture all the deformations of the spread, and that the correlation between spread and rates is unstable over
+time. These findings call for richer models, mostly relevant for products sensitive to the spread between
+several bonds.
+\end{otherlanguage}

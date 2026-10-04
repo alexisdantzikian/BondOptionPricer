@@ -1,0 +1,134 @@
+\section{Évaluation de l'option sur OAT}
+\label{sec:evaluation}
+
+\subsection{Le contrat}
+
+L'option européenne d'échéance $T_0$ et de strike $K$, exprimé sur le prix clean, paie
+$\big(\bar B^{clean}(T_0) - K\big)^+$ pour un call et $\big(K - \bar B^{clean}(T_0)\big)^+$ pour un put. Le
+coupon couru $CC(T_0)$ à l'échéance est connu dès aujourd'hui, si bien que
+$\bar B^{clean}(T_0) - K = \bar B(T_0) - X$ avec le strike dirty $X = K + CC(T_0)$ : le modèle travaille sur le
+prix dirty, somme actualisée des flux. L'option est collatéralisée et actualisée au taux €STR. Sous la mesure
+$T_0$-forward €STR $\Q^{T_0}$, de numéraire $P(\cdot,T_0)$ \citep[CM3]{Hillairet2026}, son prix est
+\begin{equation}
+C = P(0,T_0)\,\E^{T_0}\big[(\bar B(T_0) - X)^+\big].
+\label{eq:prix_call}
+\end{equation}
+Les strikes sont exprimés en pourcentage du forward clean défini ci-dessous, et les prix en pourcentage du nominal.
+
+\subsection{Le forward repo}
+
+Acheter l'OAT au prix dirty de marché $\bar B^M(0)$, la financer en repo jusqu'en $T_0$ et rembourser le
+financement avec les coupons encaissés d'ici là permet de livrer le titre en $T_0$. Par absence d'arbitrage, le
+prix forward dirty est
+\begin{equation}
+F = \frac{\bar B^M(0) - \sum_{0 < T_i \le T_0} K_i\,P^{repo}(0,T_i)}{P^{repo}(0,T_0)},\qquad
+P^{repo}(0,T) = P^M(0,T)\,e^{-s^{repo}(T)T},
+\label{eq:forward}
+\end{equation}
+où $s^{repo}(T)$ est le spread du taux repo zéro continu contre l'€STR. Un contrat forward collatéralisé en €STR
+a pour prix d'équilibre $\E^{T_0}[\bar B(T_0)]$. Comme l'écart entre repo et €STR est déterministe, le portage se
+réplique, et $\E^{T_0}[\bar B(T_0)] = F$. C'est la relation forward d'un actif stockable
+\citep[cours~2, slides~16-18]{MPR2025} : vu de l'€STR, le spread repo est l'opposé d'un rendement d'opportunité
+(\emph{convenience yield}), qui serait positif pour un titre «~spécial~» en repo. Le forward clean, auquel on
+rapporte les strikes, est $F^{clean} = F - CC(T_0)$, et la parité call-put s'écrit
+$C - \text{Put} = P(0,T_0)\,(F^{clean} - K)$.
+
+Le forward n'utilise le spread repo qu'aux dates antérieures à l'échéance : la courbe repo doit couvrir $T_0$.
+Elle est définie jusqu'à dix ans, la plus longue échéance étudiée, et n'est jamais prolongée, de sorte qu'aucun
+prix ne repose sur une extrapolation du financement.
+
+\subsection{Recentrer le modèle sur le forward repo}
+
+Laissé à lui-même, le modèle fait croître le prix de l'OAT au taux $\bar r$ en moyenne. Son espérance forward
+s'écrit
+\begin{equation}
+\begin{split}
+M &= \sum_{T_i>T_0} m_i,\\
+m_i &= K_i\,\E^{T_0}\big[\bar P(T_0,T_i)\big]
+= K_i A_i\exp\Big(-H_x^i\mu_x - H_y^i\mu_y + \tfrac12\Var\big(H_x^i x(T_0) + H_y^i y(T_0)\big)\Big),
+\end{split}
+\end{equation}
+où $A_i$ est la partie déterministe de $\bar P(T_0,T_i)$ dans~\eqref{eq:zc_oat}, $H^i_\cdot = H_{a_\cdot}(T_0,T_i)$,
+et $(\mu_x,\mu_y)$ les moyennes de $(x(T_0),y(T_0))$ sous $\Q^{T_0}$. Comme dans
+\citet[lemme~4.2.2]{BrigoMercurio2006}, le changement de numéraire ajoute à la dérive des facteurs leur covariance
+avec le numéraire. Celui-ci est ici le zéro-coupon €STR, qui ne dépend que de $x$ ; en intégrant,
+\begin{equation}
+\mu_x = -\frac{\sigma_x^2}{2a_x^2}\big(1-e^{-a_xT_0}\big)^2,\qquad
+\mu_y = -\frac{\rho\sigma_x\sigma_y}{a_x}\Big[\frac{1-e^{-a_yT_0}}{a_y} - \frac{1-e^{-(a_x+a_y)T_0}}{a_x+a_y}\Big],
+\end{equation}
+soit $-\Cov\big(x(T_0),\int_0^{T_0}x\big)$ et $-\Cov\big(y(T_0),\int_0^{T_0}x\big)$ ; variances et covariance
+sont inchangées.
+
+Le porteur finance l'OAT au taux repo, et non à son propre taux : $M$ ne coïncide pas avec $F$, et l'écart croît
+avec $T_0$ comme le portage accumulé. On recale donc le modèle sur le marché, comme $\bar\alpha$ recale la
+courbe, en décalant la moyenne du facteur spread en $T_0$ d'une constante $\delta$ telle que
+\begin{equation}
+\sum_{T_i>T_0} m_i(\delta) = F,\qquad m_i(\delta) = m_i\,e^{-H_y^i\,\delta}.
+\label{eq:recentrage}
+\end{equation}
+$\delta$ s'obtient par une résolution numérique à une dimension d'une expression fermée.
+
+À un terme de convexité près, $\delta$ est nul quand le spread repo égale le spread de l'OAT : le portage est
+alors celui de la courbe OAT, et $M = F$. Quand le spread repo est plus faible, le porteur financé en repo
+encaisse un portage positif que la diffusion ne justifie pas. Sur un marché sans arbitrage, ce portage rémunère
+ce que le modèle gaussien ne contient pas : la perte qu'un événement de crédit ou de liquidité infligerait au
+porteur, ou des coûts de financement que le taux repo ne montre pas (décotes, coût de bilan). $F$ est alors
+l'espérance du prix y compris cette perte, $M$ son espérance sur une trajectoire sans événement, et $\delta$ fait
+passer de l'une à l'autre. L'approximation porte sur la loi : la moyenne du prix intègre la perte anticipée, sa
+dispersion non, puisque la loi de $\bar B(T_0)$ reste celle d'un modèle gaussien, sans saut. Son effet reste limité tant que
+$\delta$ est petit, ce que la section~\ref{sec:resultats} vérifie pour la courbe repo retenue.
+
+\subsection{Prix exact}
+
+Sous $\Q^{T_0}$, $\big(x(T_0), y(T_0)\big)$ est gaussien, de moyennes $(\mu_x, \mu_y + \delta)$, d'écarts-types
+$(s_x, s_y)$ et de corrélation $r_{xy}$ (annexe~A). Le prix de l'OAT à l'échéance est une somme d'exponentielles
+affines, $\bar B(T_0) = \sum_i K_iA_i\,e^{-H_x^i x(T_0) - H_y^i y(T_0)}$, décroissante en chaque facteur.
+\citet[théorème~4.2.3]{BrigoMercurio2006} en tirent le prix exact d'une swaption, c'est-à-dire d'une option sur
+obligation à coupons, sous forme d'intégrale à une dimension. On l'adapte en conditionnant par le facteur spread.
+Sachant $y(T_0) = y$, $x(T_0)$ est gaussien de moyenne $m(y) = \mu_x + r_{xy}\,s_x\,(y - \mu_y - \delta)/s_y$ et
+d'écart-type $s = s_x\sqrt{1 - r_{xy}^2}$, et le call est exercé si $x(T_0) < x^\ast(y)$, où $x^\ast(y)$ est
+l'unique solution de $\bar B(T_0) = X$. Il vient
+\begin{equation}
+\begin{split}
+C &= P(0,T_0)\int_{\mathbb R}\Big[\sum_i K_iA_i\,e^{-H_y^i y - H_x^i m(y) + \frac12 (H_x^i s)^2}\,\Phi\big(d(y) + H_x^i s\big)
+- X\,\Phi\big(d(y)\big)\Big]\,\varphi_y(y)\,\dd y,\\
+d(y) &= \frac{x^\ast(y) - m(y)}{s},
+\end{split}
+\label{eq:prix_exact}
+\end{equation}
+où $\varphi_y$ est la densité de $y(T_0)$ et $\Phi$ la fonction de répartition de la loi normale centrée réduite ;
+le put s'obtient en remplaçant le crochet par $X\,\Phi(-d) - \sum_i(\cdots)\,\Phi(-d - H_x^i s)$. L'intégrale est
+calculée par quadrature de Gauss-Hermite, et $x^\ast$ par la méthode de Newton sur $\log\bar B$. À $y$ fixé, on
+retrouve la décomposition de Jamshidian : les zéro-coupons OAT sont des fonctions décroissantes du seul facteur
+$x$, hypothèse sous laquelle \citet[CM3, p.~40-43]{Hillairet2026} l'établit dans un modèle HJM gaussien.
+
+Le prix~\eqref{eq:prix_exact} adapte le théorème du livre sur trois points : il fait intervenir deux courbes
+(l'actualisation €STR ne dépend que de $x$, l'OAT de $x + y$), les moyennes forward qui en découlent et le
+recentrage $\delta$. Le livre intègre sur le premier facteur ; on intègre sur le second, ce qui garde l'intégrande
+régulier quand $\sigma_y$ tend vers zéro et couvre ainsi le cas limite à un facteur, où le prix est celui de
+Jamshidian.
+
+\subsection{Approximation à poids gelés}
+
+\citet{Russo} remplacent cette intégrale par une formule fermée, qui étend au G2++ l'approximation proposée à
+un facteur par \citet{RussoFabozzi2016}. Si l'on gèle les poids $w_i$ des flux,
+$\log\bar B(T_0) \approx c - \bar D_x\,x(T_0) - \bar D_y\,y(T_0)$ est gaussien, de variance
+\begin{equation}
+\bar\Sigma_B^2 = \bar D_x^2\,\Var x(T_0) + \bar D_y^2\,\Var y(T_0) + 2\bar D_x\bar D_y\,\Cov\big(x(T_0),y(T_0)\big),
+\qquad \bar D_\cdot = \sum_{T_i>T_0} w_i\,H_\cdot(T_0,T_i),
+\label{eq:sigma_b}
+\end{equation}
+et de moyenne fixée par $\E^{T_0}[\bar B(T_0)] = F$. \citet{Russo} écrivent cette variance comme une intégrale
+évaluée numériquement ; avec des poids gelés, elle est fermée. Ils gèlent les poids à leur valeur d'aujourd'hui ;
+on les gèle à leur valeur forward recentrée, $w_i = m_i(\delta)/F$, poids moyen de chaque flux dans le prix de
+l'OAT à l'échéance. Le prix approché est alors celui de Black sur le forward repo :
+\begin{equation}
+C \approx P(0,T_0)\big[F\,\Phi(d_1) - X\,\Phi(d_2)\big],\qquad
+d_{1,2} = \frac{\log(F/X) \pm \tfrac12\bar\Sigma_B^2}{\bar\Sigma_B}.
+\label{eq:black}
+\end{equation}
+Cette formule serait exacte si le prix forward de l'OAT était une martingale lognormale sous $\Q^{T_0}$
+\citep[CM3, p.~28]{Hillairet2026}. C'est le cas de chaque zéro-coupon, pas de leur somme : l'approximation est
+bonne au centre de la distribution et se dégrade dans ses queues (section~\ref{sec:resultats}). Elle garde une
+utilité même si l'on dispose du prix exact, car la décomposition de $\bar\Sigma_B^2$ en une part taux, une part
+spread et une part croisée, de signe celui de $\rho$, sert à lire les résultats.

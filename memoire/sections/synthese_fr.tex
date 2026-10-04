@@ -1,0 +1,46 @@
+\section*{Note de synthèse}
+\addcontentsline{toc}{section}{Note de synthèse}
+
+\textbf{Cadre.} Ce travail a été mené pendant le stage de fin d'études réalisé chez
+\acompleter{nom de l'entreprise}, au sein de \acompleter{équipe}, du \acompleter{dates}. Il porte sur
+l'évaluation d'options sur obligations d'État françaises, les OAT. Une option d'achat (call) donne le droit
+d'acheter l'obligation à une date future à un prix fixé aujourd'hui ; une option de vente (put), celui de la
+vendre. Le contrat étudié est celui qui se traite en banque : l'option est garantie par un dépôt de collatéral
+rémunéré au taux interbancaire au jour le jour €STR, et son prix à terme se déduit du coût de financement du titre
+sur le marché de la pension livrée (repo).
+
+\textbf{Problématique.} Le prix d'une OAT dépend de deux sources de risque : le niveau des taux sans risque, et
+l'écart (spread) entre le rendement de l'OAT et ces taux, qui rémunère le risque de crédit de l'État, la liquidité
+du titre et des effets d'offre. Les modèles de taux usuels ne retiennent que la première source. Or il n'existe pas
+de marché d'options sur OAT d'où l'on pourrait tirer la volatilité du spread. La question posée est double :
+faut-il modéliser le spread comme un risque à part pour évaluer une option sur OAT, et les données disponibles
+permettent-elles d'en mesurer les caractéristiques ?
+
+\textbf{Démarche.} Le modèle retenu, issu de la littérature (Brigo et Mercurio, 2006 ; Russo, Giacometti et
+Fabozzi), décrit le taux de l'OAT comme la somme de deux facteurs aléatoires gaussiens : le taux sans risque et le
+spread. Le facteur taux est calibré sur les prix des swaptions, options sur taux d'intérêt très liquides. Pour le
+facteur spread, on montre d'abord que la méthode proposée dans l'article de référence, fondée sur la seule courbe
+des taux OAT, ne peut rien mesurer. Les paramètres du spread sont donc estimés sur six ans de données
+quotidiennes (2021-2026), par deux méthodes économétriques enseignées à l'ENSAE : la méthode des moments
+généralisée et le maximum de vraisemblance avec filtre de Kalman. Le prix de l'option est calculé exactement, et
+ce calcul est validé par simulation de Monte-Carlo. Les données proviennent de Bloomberg (8 septembre 2026), et
+l'option porte sur l'OAT 4,10~\% 2046, pour des échéances de un à dix ans.
+
+\textbf{Résultats.} Quatre résultats se dégagent.
+\begin{itemize}
+\item La volatilité du spread est d'environ 34 points de base par an, sa corrélation avec les taux de 0,13 ;
+elle alterne entre une période calme (23 points de base) et des épisodes agités (51 points de base), comme
+en 2022 ou lors des crises politiques de 2024, mais ces épisodes sont trop courts pour modifier le prix.
+\item Prendre en compte le spread renchérit l'option de 17~\%, à toutes les échéances.
+\item Cet effet se résume, pour une option sur une seule OAT, à une volatilité augmentée : un modèle à un seul
+facteur, dont la volatilité est relevée d'environ 17~\%, reproduit les prix à 0,05~\% près.
+\item La formule approchée de l'article de référence est précise pour les options à la monnaie, mais commet des
+erreurs de 3 à 4~\% sur les options éloignées de la monnaie : le prix exact est préférable.
+\end{itemize}
+Enfin, pour les échéances longues, le coût de financement en repo pèse autant sur le prix que le spread lui-même.
+
+\textbf{Limites et suites.} Faute de cotations, la courbe de financement en repo utilisée est fictive ; une courbe
+de marché la remplacerait sans modifier les calculs. Les tests statistiques montrent qu'un seul facteur par courbe
+ne décrit pas toutes les déformations du spread, et la corrélation entre spread et taux est instable dans le
+temps. Ces points ouvrent la voie à des modèles plus riches, utiles surtout pour des produits sensibles à l'écart
+entre plusieurs obligations.

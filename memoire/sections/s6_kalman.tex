@@ -1,0 +1,148 @@
+\section{Estimation par filtre de Kalman}
+\label{sec:kalman}
+
+La méthode des moments n'utilise que les variations quotidiennes du spread. Elle ignore la dynamique de son
+niveau, donc la mesure historique, et traite chaque série comme une observation exacte du facteur. Or le facteur
+$y$ n'est pas observé : seuls le sont des rendements de différentes maturités, qui en dépendent avec une erreur.
+Le cadre naturel est alors celui des modèles espace-état, estimés par maximum de vraisemblance à l'aide du filtre
+de Kalman \citep[cours~5, section~I.2]{MPR2025}. Le filtre estime ensemble les paramètres risque-neutres, qui
+fixent les chargements des rendements sur les facteurs, et les paramètres historiques, qui fixent la dynamique
+des facteurs ; il reconstruit aussi la trajectoire des facteurs. On l'emploie ici en contrôle de la GMM, et pour
+tester ce que les données disent de la mesure historique.
+
+\subsection{Représentation espace-état}
+
+On observe chaque jour ouvré $t$ les taux de swaps €STR $R_t(\tau)$ et les spreads OAT–€STR $S_t(\tau)$ aux six
+tenors $\tau \in \{5, 10, 15, 20, 25, 30\}$ ans, soit un vecteur $z_t$ de $m = 12$ séries, centrées sur leur moyenne
+empirique. L'état est le couple non observé $w_t = (x_t, y_t)'$. Dans le modèle, le taux zéro €STR de maturité
+$\tau$ est affine en $x$, de pente $H_{a_x^Q}(\tau)/\tau$, et le spread zéro est affine en $y$, de pente
+$H_{a_y^Q}(\tau)/\tau$. D'où l'équation de mesure (cours~5, définition~I.1)
+\begin{equation}
+z_t = B\,w_t + \varepsilon_t,\qquad
+B = \begin{pmatrix} \big(H_{a_x^Q}(\tau_j)/\tau_j\big)_j & 0 \\ 0 & \big(H_{a_y^Q}(\tau_j)/\tau_j\big)_j \end{pmatrix},
+\end{equation}
+avec $\varepsilon_t \sim \mathcal N(0,\Omega)$ et $\Omega = \mathrm{diag}(\omega_1^2, \dots, \omega_{12}^2)$,
+où les chargements dépendent des vitesses de retour risque-neutres $a^Q$, celles qui figurent dans les prix des
+zéro-coupons. Sous la mesure historique, les facteurs suivent des processus d'Ornstein-Uhlenbeck de vitesses
+$a^P$, avec les mêmes volatilités et la même corrélation ; les dynamiques sous les deux mesures sont spécifiées
+séparément, comme dans la modélisation mixte du cours~1 (slide~132). Discrétisés exactement au pas
+$\Delta = 1/252$, ils donnent l'équation de transition, un VAR(1) gaussien :
+\begin{equation}
+\begin{split}
+w_t &= \Phi\,w_{t-1} + \eta_t,\qquad \Phi = \mathrm{diag}\big(e^{-a_x^P\Delta},\,e^{-a_y^P\Delta}\big),\\
+\Var(\eta_t) &= \begin{pmatrix} \sigma_x^2\,I(2a_x^P) & \rho\sigma_x\sigma_y\,I(a_x^P + a_y^P) \\
+\rho\sigma_x\sigma_y\,I(a_x^P + a_y^P) & \sigma_y^2\,I(2a_y^P)\end{pmatrix},
+\end{split}
+\end{equation}
+avec $I(a) = (1-e^{-a\Delta})/a$. Les paramètres sont
+$\theta = (a_x^Q, a_y^Q, a_x^P, a_y^P, \sigma_x, \sigma_y, \rho, \omega_1, \dots, \omega_{12})$.
+
+C'est la représentation espace-état de Diebold, Rudebusch et Aruoba \citep[cours~3, slides~119-120]{MPR2025},
+avec des chargements contraints par l'absence d'arbitrage : $H_a(\tau)/\tau$ est le chargement de pente de
+Nelson-Siegel, qui tend vers le chargement de niveau, égal à 1, quand $a \to 0$. Une vitesse risque-neutre nulle
+fait donc du facteur un facteur de niveau.
+
+\subsection{Vraisemblance et identification}
+
+Le modèle est linéaire et gaussien : le filtre de Kalman donne exactement la loi de $w_t$ sachant les observations
+passées (cours~5, proposition~I.2), et la vraisemblance se calcule à partir des erreurs de prévision
+$\nu_t = z_t - B\,w_{t|t-1}$ et de leurs variances $S_t$ :
+\begin{equation}
+\log L(\theta) = -\frac{mT}{2}\log 2\pi - \frac12\sum_{t=1}^T\Big(\log|S_t| + \nu_t'\,S_t^{-1}\,\nu_t\Big).
+\end{equation}
+Le filtre est initialisé à la loi stationnaire de l'état, et les quelques valeurs manquantes des séries €STR sont
+traitées en réduisant ces jours-là la dimension de $z_t$ (cours~5, remarques~I.2 et~I.3). La vraisemblance est
+maximisée par l'algorithme L-BFGS ; le filtre, la vraisemblance et le lissage sont ceux de la classe
+\texttt{MLEModel} de statsmodels.
+
+Laissée libre, la vraisemblance est maximale lorsque l'une des variances d'erreur s'annule : le facteur passe alors
+exactement par une série, et la vraisemblance a plusieurs maxima selon la série choisie. On fixe ce choix en
+supposant les deux taux à vingt ans, tenor de l'OAT sous-jacente, observés sans erreur. C'est l'hypothèse des
+variables parfaitement modélisées de la technique d'inversion de \citet{ChenScott1993}
+(cours~5, section~I.3, hypothèse~I.1) : les facteurs se lisent sur les taux à vingt ans, et les dix autres séries,
+mesurées avec erreur, identifient les vitesses risque-neutres par la forme de leurs chargements.
+
+\subsection{Ce que le filtre peut identifier : test sur données simulées}
+
+Avant l'estimation sur données réelles, on vérifie ce que l'estimateur retrouve quand le modèle est vrai. On simule
+48 échantillons de 1\,460 jours, la taille des données, aux paramètres estimés plus bas, à trois exceptions près :
+$a_y^Q = 0{,}05$, pour savoir si une vitesse risque-neutre modeste serait détectée, et $a_x^P = a_y^P = 0{,}2$,
+ordre de grandeur courant d'une vitesse historique (demi-vie de 3,5 ans). Le modèle est réestimé sur chaque
+échantillon.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Estimation sur 48 échantillons simulés (volatilités en \%)}
+\label{tab:kalman_sim}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+ & Valeur vraie & Médiane & Écart-type & Quantile 5~\% & Quantile 95~\% \\
+\midrule
+$a_x^Q$ & 0,0118 & 0,0117 & 0,0006 & 0,0109 & 0,0126 \\
+$a_y^Q$ & 0,0500 & 0,0499 & 0,0015 & 0,0480 & 0,0526 \\
+$a_x^P$ & 0,2000 & 0,8173 & 0,6231 & 0,2291 & 2,3023 \\
+$a_y^P$ & 0,2000 & 0,6166 & 0,7056 & 0,1042 & 1,7754 \\
+$\sigma_x$ & 0,7751 & 0,7734 & 0,0163 & 0,7439 & 0,7970 \\
+$\sigma_y$ & 0,3313 & 0,3301 & 0,0081 & 0,3183 & 0,3420 \\
+$\rho$ & 0,1513 & 0,1511 & 0,0253 & 0,1147 & 0,1930 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Les paramètres qui fixent les chargements et les covariances sont retrouvés avec précision
+(tableau~\ref{tab:kalman_sim}) : une vitesse risque-neutre de 0,05 serait détectée sans ambiguïté. Les vitesses
+historiques ne le sont pas. Sur six ans de données, un processus de demi-vie 3,5 ans ne parcourt qu'environ un
+cycle, et la vraisemblance distingue mal une vitesse de 0,2 d'une vitesse de 1. L'estimateur est de plus biaisé :
+en petit échantillon, le coefficient autorégressif $\phi = e^{-a^P\Delta}$ d'un processus persistant est
+sous-estimé d'environ $(1+3\phi)/T$ (approximation de Kendall, cours~5, slides~52-53), donc la vitesse
+$a^P \approx (1-\phi)/\Delta$ est surestimée d'environ $4/(T\Delta)$, soit 0,7 pour $T\Delta \approx 5{,}8$ années.
+C'est l'ordre de grandeur de l'écart entre les médianes estimées, 0,82 et 0,62, et la vraie valeur. On retrouve le
+problème de persistance du cours (section~I.6).
+
+\subsection{Résultats sur données françaises}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Estimation par filtre de Kalman, 1\,460 jours du 4 janvier 2021 au 8 septembre 2026 (volatilités en \%)}
+\label{tab:kalman}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+ & Filtre de Kalman & Écart-type & GMM ou swaptions \\
+\midrule
+$a_x^Q$ & 0,0118 & 0,0004 & 0,0107 \\
+$a_y^Q$ & 0,0001 & 0,0004 & 0,001 (borne) \\
+$a_x^P$ & 0,1216 & 0,1587 & — \\
+$a_y^P$ & 0,2152 & 0,3591 & — \\
+$\sigma_x$ & 0,7751 & 0,0123 & 0,7367 \\
+$\sigma_y$ & 0,3313 & 0,0038 & 0,3374 \\
+$\rho$ & 0,1513 & 0,0211 & 0,1299 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Les estimations confirment la mesure de pricing (tableau~\ref{tab:kalman}). La vitesse risque-neutre du spread est
+nulle, comme dans la GMM ; la volatilité du spread, 33,1~pb par an, et sa corrélation avec les taux, 0,15, sont
+proches de celles de la GMM. La vitesse risque-neutre des taux, tirée de la seule coupe de la courbe €STR, vaut
+0,0118, proche de celle qu'impliquent les swaptions (0,0107). Les vitesses historiques ne sont pas significatives,
+ce que le test sur données simulées laissait prévoir.
+
+Les écarts-types des erreurs de mesure vont de 5 à 27~pb pour les swaps €STR et de 4 à 12~pb pour les spreads,
+les plus élevés au tenor de cinq ans. Le test de \citet{LjungBox1978}, à dix retards, rejette l'indépendance des
+erreurs de prévision pour chaque série (p-valeur au plus $2{,}9\times10^{-261}$) : les écarts de chaque tenor au
+facteur sont persistants. Un facteur par courbe ne reproduit pas les déformations de pente, que la deuxième
+composante principale du spread mettait déjà en évidence ; la figure~\ref{fig:kalman} le montre au tenor de cinq
+ans. C'est la conclusion du test $J$ de la GMM.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\textwidth]{kalman}
+\caption{À gauche, vitesses historiques estimées sur les 48 échantillons simulés (valeur vraie 0,2) ; à droite,
+spreads observés et spreads du modèle à 5 et 30 ans, avec le facteur lissé.}
+\label{fig:kalman}
+\end{figure}
+
+Le filtre de Kalman confirme ainsi l'hypothèse~H2 pour la mesure de pricing et la rejette pour la mesure
+historique : la volatilité, la corrélation et la vitesse risque-neutre du spread sont identifiées et concordent
+avec la GMM, mais six ans de données ne suffisent pas à identifier sa dynamique historique. La GMM reste
+l'estimateur retenu, et la section~\ref{sec:resultats} mesure l'effet sur le prix d'un passage aux paramètres du
+filtre.

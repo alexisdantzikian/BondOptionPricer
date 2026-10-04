@@ -5,3 +5,11 @@ __pycache__/
 .idea/
 data/~$*
 *.pyc
+memoire/*.aux
+memoire/*.log
+memoire/*.out
+memoire/*.toc
+memoire/*.fls
+memoire/*.fdb_latexmk
+memoire/*.xdv
+memoire/*.synctex.gz
