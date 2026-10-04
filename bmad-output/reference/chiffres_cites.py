@@ -169,6 +169,27 @@ CHIFFRES.update({
     "baisse du call ATM si sigma_y x sigma^Q / sigma^P": _plage(-C_KAPPA * 100, 0, unite="%"),
 })
 
+# --- régimes de volatilité du spread (§9.4) et effet sur le prix (§12)
+_rq, _rh = REG["quotidiennes"], REG["hebdomadaires"]
+_sq, _rhoq = regimes_effectifs(_rq)
+_rp = REGP.div(REGP["GMM (retenue)"], axis=0) - 1
+_dq, _dh = _rq["tab"]["durée moyenne (jours ouvrés)"], _rh["tab"]["durée moyenne (jours ouvrés)"]
+CHIFFRES.update({
+    "vol du spread en régime calme et en régime agité (bp par an)": f"{_fr(_rq['tab'].loc['calme', 'vol spread (bp/an)'], 0)} et "
+                                                                     f"{_fr(_rq['tab'].loc['agité', 'vol spread (bp/an)'], 0)}",
+    "sigma_y en régime calme": _fr(_sq["calme"] * 100, 2, unite="%"),
+    "sigma_y en régime agité": _fr(_sq["agité"] * 100, 2, unite="%"),
+    "corrélation des browniens commune aux régimes": _fr(_rhoq, 2),
+    "call ATM toujours en régime calme, baisse": _plage(-_rp["toujours calme"] * 100, 0, unite="%"),
+    "call ATM toujours en régime agité, hausse": _plage(_rp["toujours agité"] * 100, 0, unite="%"),
+    "durées moyennes des régimes, variations quotidiennes (jours ouvrés)": f"{_fr(_dq['calme'], 0)} et {_fr(_dq['agité'], 0)}",
+    "durées moyennes des régimes, variations hebdomadaires (jours ouvrés)": f"{_fr(_dh['calme'], 0)} et {_fr(_dh['agité'], 0)}",
+    "probabilité du régime agité à la date des cours": _fr(_rq["p0"] * 100, 0, unite="%"),
+    "call ATM avec régimes quotidiens / retenu - 1, à 1 an (baisse)": _fr(-_rp.loc[1.0, "régimes (quotidiennes)"] * 100, 1, unite="%"),
+    "écart des régimes quotidiens décroissant avec l'échéance": "oui" if _rp["régimes (quotidiennes)"].abs().is_monotonic_decreasing else "non",
+    "call ATM avec régimes, écart maximal (deux estimations)": _fr(_rp[["régimes (quotidiennes)", "régimes (hebdomadaires)"]].abs().max().max() * 100, 1, unite="%"),
+})
+
 print("chiffres cités (valeurs formatées comme dans le texte) :")
 for _lib, _val in CHIFFRES.items():
     print(f"  {_lib:<72} {_val}")
